@@ -127,3 +127,20 @@
 
 (fact 5)
 
+; Task 8
+
+(define (fix maker)
+  (maker (lambda (n) ((fix maker) n))))
+
+(define fact-maker
+  (lambda (h)
+    (lambda (n)
+      (if (= n 0)
+        1
+        (* n (h (- n 1)))))))
+
+(define fact2
+  (fix fact-maker))
+
+(fact2 5)
+
