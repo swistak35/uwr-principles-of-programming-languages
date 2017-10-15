@@ -114,3 +114,16 @@
         (lambda (n) (* n (exp-sub1 n)))))))
 
 ((exp 3) 2)
+
+; Task 7
+
+(define fact
+  (let ((f (lambda (g)
+              (lambda (n)
+                (if (= n 0)
+                  1
+                  (* n ((g g) (- n 1))))))))
+    (f f)))
+
+(fact 5)
+
