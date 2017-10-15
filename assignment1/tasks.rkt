@@ -144,3 +144,17 @@
 
 (fact2 5)
 
+; Task 9
+
+; (define (halts-for-nil lst) ...)
+
+(define (loops-forever x) (loops-forever x))
+; (loops-forever 42)
+(define (contradiction lst)
+  (if (halts-for-nil contradiction)
+    (if (null? lst)
+      (loops-forever 42)
+      42)
+    (if (null? lst)
+      42
+      (loops-forever 42))))
