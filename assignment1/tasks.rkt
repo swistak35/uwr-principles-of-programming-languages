@@ -104,3 +104,13 @@
                       ())
                   (31 () ()))))
 
+; Task 6
+
+(define (exp k)
+  (cond
+    ((= k 0) (lambda (n) 1))
+    (else
+      (let ([exp-sub1 (exp (- k 1))])
+        (lambda (n) (* n (exp-sub1 n)))))))
+
+((exp 3) 2)
