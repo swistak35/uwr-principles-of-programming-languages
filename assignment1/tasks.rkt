@@ -80,3 +80,27 @@
 (sort/predicate < '(8 2 5 2 3))
 (sort/predicate > '(8 2 5 2 3))
 
+; Task 5 (1.34)
+
+(define bst/val car)
+(define bst/left cadr)
+(define bst/right caddr)
+
+; Not defined if x is not present in tree
+
+(define (path x node)
+  (cond
+    ((< (bst/val node) x) (cons 'right (path x (bst/right node))))
+    ((> (bst/val node) x) (cons 'left (path x (bst/left node))))
+    (else '())))
+
+; (trace path)
+; (trace bst/val)
+; (trace bst/right)
+; (trace bst/left)
+
+(path 17 '(14 (7 () (12 () ()))
+              (26 (20 (17 () ())
+                      ())
+                  (31 () ()))))
+
