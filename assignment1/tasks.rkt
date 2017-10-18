@@ -3,6 +3,7 @@
 ; I wasn't using eopl because it wasn't displaying the results by default and atom? was undefined there anyway
 
 (require racket/trace)
+(require rackunit)
 
 ; Task 1 (1.21)
 (define product
@@ -15,7 +16,10 @@
       ((null? sos2a) (product2 sos2 (cdr sos1a) sos2 acc))
       (else (product2 sos2 sos1a (cdr sos2a) (cons (cons (car sos1a) (cons (car sos2a) '())) acc))))))
 
-(product '(a b c) '(x y))
+(check-equal? (product '(a b c) '(x y)) '((c y) (c x) (b y) (b x) (a y) (a x)))
+(check-equal? (product '() '()) '())
+(check-equal? (product '(a) '()) '())
+(check-equal? (product '() '(x)) '())
 
 ; Task 2 (1.26)
 
@@ -30,8 +34,8 @@
       ((atom? (car lst)) (cons (car lst) (up (cdr lst))))
       (else (append (car lst) (up (cdr lst)))))))
 
-(up '((1 2) (3 4)))
-(up '((x (y)) z))
+(check-equal? (up '((1 2) (3 4))) '(1 2 3 4))
+(check-equal? (up '((x (y)) z)) '(x (y) z))
 
 ; Task 3 (1.28)
 
@@ -43,8 +47,8 @@
     ((pred (car loi1) (car loi2)) (cons (car loi1) (merge/predicate pred (cdr loi1) loi2)))
     (else (cons (car loi2) (merge/predicate pred loi1 (cdr loi2))))))
 
-(merge '(1 4) '(1 2 8))
-(merge '(35 62 81 90 91) '(3 83 85 90))
+(check-equal? (merge '(1 4) '(1 2 8)) '(1 1 2 4 8))
+(check-equal? (merge '(35 62 81 90 91) '(3 83 85 90)) '(3 35 62 81 83 85 90 90 91))
 
 ; Task 4 (1.30)
 
@@ -127,6 +131,7 @@
 
 (fact 5)
 
+; beta - eta - beta
 ; Task 8
 
 (define (fix maker)
@@ -148,13 +153,13 @@
 
 ; (define (halts-for-nil lst) ...)
 
-(define (loops-forever x) (loops-forever x))
+; (define (loops-forever x) (loops-forever x))
 ; (loops-forever 42)
-(define (contradiction lst)
-  (if (halts-for-nil contradiction)
-    (if (null? lst)
-      (loops-forever 42)
-      42)
-    (if (null? lst)
-      42
-      (loops-forever 42))))
+; (define (contradiction lst)
+;   (if (halts-for-nil contradiction)
+;     (if (null? lst)
+;       (loops-forever 42)
+;       42)
+;     (if (null? lst)
+;       42
+;       (loops-forever 42))))
