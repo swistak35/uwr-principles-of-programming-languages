@@ -134,18 +134,28 @@
 ; beta - eta - beta
 ; Task 8
 
+; (define (fix maker)
+;   (maker (lambda (n) ((fix maker) n))))
+
 (define (fix maker)
-  (maker (lambda (n) ((fix maker) n))))
+  (let ((f (trace-lambda (g)
+             (trace-lambda (n)
+               ((g g) n)))))
+    (f maker)))
 
 (define fact-maker
-  (lambda (h)
-    (lambda (n)
+  (trace-lambda (h)
+    (trace-lambda (n)
       (if (= n 0)
         1
         (* n (h (- n 1)))))))
 
 (define fact2
   (fix fact-maker))
+
+(trace fix)
+(trace fact-maker)
+(trace fact2)
 
 (fact2 5)
 
