@@ -75,57 +75,44 @@
 
 ; Task 9 (B.3)
 
+(define (additive-op-fun op)
+  (cases additive-op op
+    (additive-op-plus () +)
+    (additive-op-minus () -)))
+
 (define (value-of-aexp aexp)
   (cases arith-expr aexp
     (a-arith-expr (aterm-1 a-ops a-terms)
       (if (null? a-ops)
         (value-of-aterm aterm-1)
-        (cases additive-op (car a-ops)
-          (additive-op-plus ()
-            (value-of-aexp
-              (a-arith-expr
-                (a-arith-term
-                  (arith-factor-number
-                    (+
-                      (value-of-aterm aterm-1)
-                      (value-of-aterm (car a-terms)))) '() '())
-                (cdr a-ops)
-                (cdr a-terms))))
-          (additive-op-minus ()
-            (value-of-aexp
-              (a-arith-expr
-                (a-arith-term
-                  (arith-factor-number
-                    (-
-                      (value-of-aterm aterm-1)
-                      (value-of-aterm (car a-terms)))) '() '())
-                (cdr a-ops)
-                (cdr a-terms)))))))))
+          (value-of-aexp
+            (a-arith-expr
+              (a-arith-term
+                (arith-factor-number
+                  ((additive-op-fun (car a-ops))
+                    (value-of-aterm aterm-1)
+                    (value-of-aterm (car a-terms)))) '() '())
+              (cdr a-ops)
+              (cdr a-terms)))))))
+
+(define (multiplicative-op-fun op)
+  (cases multiplicative-op op
+    (multiplicative-op-mult () *)
+    (multiplicative-op-div () quotient)))
 
 (define (value-of-aterm aterm)
   (cases arith-term aterm
     (a-arith-term (afactor-1 a-ops a-factors)
       (if (null? a-ops)
         (value-of-afactor afactor-1)
-        (cases multiplicative-op (car a-ops)
-          (multiplicative-op-mult ()
-            (value-of-aterm
-              (a-arith-term
-                (arith-factor-number
-                  (*
-                    (value-of-afactor afactor-1)
-                    (value-of-afactor (car a-factors))))
-                (cdr a-ops)
-                (cdr a-factors))))
-          (multiplicative-op-div ()
-            (value-of-aterm
-              (a-arith-term
-                (arith-factor-number
-                  (quotient
-                    (value-of-afactor afactor-1)
-                    (value-of-afactor (car a-factors))))
-                (cdr a-ops)
-                (cdr a-factors)))))))))
+        (value-of-aterm
+          (a-arith-term
+            (arith-factor-number
+              ((multiplicative-op-fun (car a-ops))
+                (value-of-afactor afactor-1)
+                (value-of-afactor (car a-factors))))
+            (cdr a-ops)
+            (cdr a-factors)))))))
 
 (define (value-of-afactor afactor)
   (cases arith-factor afactor
