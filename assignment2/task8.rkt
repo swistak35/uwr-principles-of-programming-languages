@@ -73,6 +73,8 @@
         (list (arith-factor-number 66)))
       (a-arith-term (arith-factor-number 5) '() '()))))
 
+; Task 9 (B.3)
+
 (define (value-of-aexp aexp)
   (cases arith-expr aexp
     (a-arith-expr (aterm-1 a-ops a-terms)
@@ -80,21 +82,25 @@
         (value-of-aterm aterm-1)
         (cases additive-op (car a-ops)
           (additive-op-plus ()
-            (+
-              (value-of-aterm aterm-1)
-              (value-of-aexp
-                (a-arith-expr
-                  (car a-terms)
-                  (cdr a-ops)
-                  (cdr a-terms)))))
+            (value-of-aexp
+              (a-arith-expr
+                (a-arith-term
+                  (arith-factor-number
+                    (+
+                      (value-of-aterm aterm-1)
+                      (value-of-aterm (car a-terms)))) '() '())
+                (cdr a-ops)
+                (cdr a-terms))))
           (additive-op-minus ()
-            (-
-              (value-of-aterm aterm-1)
-              (value-of-aexp
-                (a-arith-expr
-                  (car a-terms)
-                  (cdr a-ops)
-                  (cdr a-terms))))))))))
+            (value-of-aexp
+              (a-arith-expr
+                (a-arith-term
+                  (arith-factor-number
+                    (-
+                      (value-of-aterm aterm-1)
+                      (value-of-aterm (car a-terms)))) '() '())
+                (cdr a-ops)
+                (cdr a-terms)))))))))
 
 (define (value-of-aterm aterm)
   (cases arith-term aterm
@@ -103,21 +109,23 @@
         (value-of-afactor afactor-1)
         (cases multiplicative-op (car a-ops)
           (multiplicative-op-mult ()
-            (*
-              (value-of-afactor afactor-1)
-              (value-of-aterm
-                (a-arith-term
-                  (car a-factors)
-                  (cdr a-ops)
-                  (cdr a-factors)))))
+            (value-of-aterm
+              (a-arith-term
+                (arith-factor-number
+                  (*
+                    (value-of-afactor afactor-1)
+                    (value-of-afactor (car a-factors))))
+                (cdr a-ops)
+                (cdr a-factors))))
           (multiplicative-op-div ()
-            (quotient
-              (value-of-afactor afactor-1)
-              (value-of-aterm
-                (a-arith-term
-                  (car a-factors)
-                  (cdr a-ops)
-                  (cdr a-factors))))))))))
+            (value-of-aterm
+              (a-arith-term
+                (arith-factor-number
+                  (quotient
+                    (value-of-afactor afactor-1)
+                    (value-of-afactor (car a-factors))))
+                (cdr a-ops)
+                (cdr a-factors)))))))))
 
 (define (value-of-afactor afactor)
   (cases arith-factor afactor
@@ -127,7 +135,6 @@
 (define (value-of str)
   (value-of-aexp (scan&parse str)))
 
-; pamietac o obsluzeniu nawiasow
 ; (trace value-of-aexp)
 ; (trace value-of-aterm)
 ; (trace value-of-afactor)
@@ -139,11 +146,9 @@
 (check-equal? (value-of "4 / 3") 1)
 ; tests for associativity
 (check-equal? (value-of "8 - 5 - 2") 1)
-; (check-equal? (value-of "18 / 5 / 2") 1)
+(check-equal? (value-of "18 / 5 / 2") 1)
 ; more complex tests (i.e. parenthesis)
 (check-equal? (value-of "4 + 3 - 5") 2)
 (check-equal? (value-of "4 + 3 * 2 - 5") 5)
 (check-equal? (value-of "(4 + 3) * 2 - 5") 9)
 (check-equal? (value-of "2 * (3 + (4 + 3) / 2) - 2") 10)
-; (display (value-of "3 + 5"))
-; (eopl:pretty-print (scan&parse "3 + 2 * 66 - 5"))
