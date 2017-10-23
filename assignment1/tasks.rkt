@@ -133,18 +133,9 @@
 
 ; Task 8
 
-; (define (fix maker)
-;   (maker (lambda (n) ((fix maker) n))))
-
-; (define (fix maker)
-;   (let ((f (trace-lambda (g)
-;              (trace-lambda (n)
-;                ((g g) n)))))
-;     (f maker)))
-
 (define (fix maker)
-  ((lambda (x) (lambda (n) ((maker (x x)) n)))
-   (lambda (x) (lambda (n) ((maker (x x)) n)))))
+  (let ((g (lambda (x) (lambda (n) ((maker (x x)) n)))))
+    (g g)))
 
 (define fact-maker
   (trace-lambda (h)
