@@ -48,10 +48,6 @@
 (define scan&parse
   (sllgen:make-string-parser scanner-spec-1 grammar-1))
 
-; (define read-eval-print
-;   (sllgen:make-rep-loop "--> " value-of--program
-;                         (sllgen:make-stream-parser scanner-spec-1 grammar-1)))
-
 (check-equal?
   (scan&parse "1 + 2")
   (a-arith-expr
@@ -139,3 +135,11 @@
 (check-equal? (value-of "4 + 3 * 2 - 5") 5)
 (check-equal? (value-of "(4 + 3) * 2 - 5") 9)
 (check-equal? (value-of "2 * (3 + (4 + 3) / 2) - 2") 10)
+
+
+; REPL
+(define read-eval-print
+  (sllgen:make-rep-loop "--> " (lambda (aexp) (value-of-aexp aexp))
+    (sllgen:make-stream-parser scanner-spec-1 grammar-1)))
+
+(read-eval-print)
