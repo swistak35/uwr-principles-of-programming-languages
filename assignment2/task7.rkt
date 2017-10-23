@@ -67,3 +67,8 @@
   #rx"Invalid syntax"
   (lambda ()
     (parse-expression '(- 3 3 3))))
+
+(check-exn
+  #rx"Invalid syntax"
+  (lambda ()
+    (parse-expression '(+ 4 2))))
