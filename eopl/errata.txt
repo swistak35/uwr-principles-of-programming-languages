@@ -1,0 +1,116 @@
+Errata: 1st Printing EOPL3
+Updated Sun Jan 12 22:39:19 2014
+
+
+
+Page 44:
+Exercise 2.19:
+move-to-left => move-to-left-son
+move-to-right => move-to-right-son
+
+Page 45:
+Exercise 2.20
+at-leaf? is already in exercise 2.19
+
+Page 84:
+Exercise 3.32
+mututally => mutually
+
+Page 101:
+Exercise 3.39
+Delete "and 'unpack'"
+
+Page 124:
+Section 4.4:
+Line 5:
+newpair ==> make-pair
+
+Page 195:
+Figure 6.1, in apply-cont, the case for fact1-cont:
+(begin
+  (set! cont saved-cont)
+  (set! n saved-n)
+  (apply-cont))))))
+==>
+(begin
+  (set! cont saved-cont)
+  (set! val (* val saved-n))  ;; changed here
+  (apply-cont)))
+  
+Page 196, Figure 6.2, next-to-last line of apply-cont:
+(set! n saved-n)
+=>
+(set! val (* val saved-n)) 
+ 
+Page 208:
+a-program ==> cps-a-program
+const-exp ==> cps-const-exp
+var-exp ==> cps-var-exp
+
+Page: 209:
+The contract should be
+apply-procedure/k : Proc * ExpVal * Cont -> ExpVal.
+Also, "cps-" should precede "let-exp", "letrec-exp",
+"if-exp", and "call-exp".
+
+Page: 216:
+Line 10 (line 4 of the second display):
+The last paren should be preceded by ">>", leading to "exp_n>> K) >>)"
+
+Lines 9 and 14 of the final display:
+The two closing parentheses should each be preceded by ">>" leading to ">>) >>)"
+
+Page 217:
+Line 7 of last display
+There is an unmatched set of <<'s and >>'s.
+Need to move the '>>' to the next term following an equal sign
+and have it follow the "K)"
+
+Page 219:
+The type and name say it is for cps-of-diff-exp, but
+the code is for cps-of-sum-exp.  So, we need the type:
+cps-of-sum-exp : Listof (InpExp) * SimpleExp -> TfExp
+
+Page 223:
+The type left off the type of the letrec-body.
+It is, of course, just InpExp.  Here is what the type should say.
+  ;; cps-of-letrec-exp :
+  Listof(Listof(Var)) * Listof(InpExp) * InpExp * SimpleExp -> TfExp
+
+Page 265
+Section 7.4.3
+optype ==> otype
+
+Page 230
+Line -4
+apply-procedure ==> apply-procedure/k
+
+Page 231
+Line 2
+apply-procedure ==> apply-procedure/k
+
+
+Page 290
+Exercise 8.5
+ interface
+        [even : int -> bool
+         odd  : int -> bool]
+=>
+ interface
+        [even : (int -> bool)
+         odd  : (int -> bool)]
+
+Page 337 et seq:
+The code in
+https://github.com/mwand/eopl3/blob/master/chapter9/classes is
+inconsistent .  data-structures.scm defines ExpVal to include objects,
+with the injector obj-val.  However, the rest of the interpreter
+doesn't use obj-val.  Objects are passed around without the wrapper.
+The code still works, because method-call-exp doesn't check to see
+whether its argument is an object.  method-call-exp should call a
+function like expval->obj, in the same way that diff-exp calls
+expval->num. 
+
+
+Page 378: Line 2:
+Delete ", and"
