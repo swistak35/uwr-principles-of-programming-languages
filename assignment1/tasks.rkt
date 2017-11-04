@@ -147,9 +147,9 @@
 (define fact2
   (fix fact-maker))
 
-(trace fix)
-(trace fact-maker)
-(trace fact2)
+;(trace fix)
+;(trace fact-maker)
+;(trace fact2)
 
 (fact2 5)
 
