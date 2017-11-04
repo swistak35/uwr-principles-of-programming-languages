@@ -1,6 +1,10 @@
 #lang eopl
 
+; Tasks 1, 2 and 3 (extensions on let language)
+
 (require rackunit)
+
+;;;;;;;;; environment
 
 (define (init-env)
   '())
@@ -20,42 +24,68 @@
 (define (report-no-binding-found search-var)
   (eopl:error 'apply-env "No binding for ~s" search-var))
 
-(define identifier? symbol?)
+;;;;;;;;; grammatical spec
 
-(define-datatype program program?
-  (a-program
-    (exp1 expression?)))
+(define the-lexical-spec
+  '((whitespace (whitespace) skip)
+    (comment ("%" (arbno (not #\newline))) skip)
+    (identifier
+      (letter (arbno (or letter digit "_" "-" "?")))
+      symbol)
+    (number (digit (arbno digit)) number)
+    (number ("-" digit (arbno digit)) number)
+    ))
 
-(define-datatype expression expression?
-  (const-exp
-    (num number?))
-  (diff-exp
-    (exp1 expression?)
-    (exp2 expression?))
-  (zero?-exp
-    (exp1 expression?))
-  (if-exp
-    (exp1 expression?)
-    (exp2 expression?)
-    (exp3 expression?))
-  (var-exp
-    (var identifier?))
-  (let-exp
-    (var identifier?)
-    (exp1 expression?)
-    (body expression?))
-  (emptylist-exp)
-  (cons-exp
-    (exp-car expression?)
-    (exp-cdr expression?))
-  (car-exp
-    (exp1 expression?))
-  (cdr-exp
-    (exp1 expression?))
-  (null?-exp
-    (exp1 expression?))
-  (list-exp
-    (exp1 (arbno exps))))
+(define the-grammar
+  '((program (expression) a-program)
+    (expression (number) const-exp)
+    (expression
+      ("-" "(" expression "," expression ")")
+      diff-exp)
+    (expression
+      ("zero?" "(" expression ")")
+      zero?-exp)
+    (expression
+      ("if" expression "then" expression "else" expression)
+      if-exp)
+    (expression (identifier) var-exp)
+    (expression
+      ("let" identifier "=" expression "in" expression)
+      let-exp)   
+    (expression
+      ("emptylist")
+      emptylist-exp)
+    (expression
+      ("cons" "(" expression "," expression ")")
+      cons-exp)
+    (expression
+      ("car" "(" expression ")")
+      car-exp)
+    (expression
+      ("cdr" "(" expression ")")
+      cdr-exp)
+    (expression
+      ("null?" "(" expression ")")
+      null?-exp)
+    (expression
+      ("list" "(" (separated-list expression ",") ")")
+      list-exp)
+    ))
+
+;;;;;;;;; sllgen boilerplate
+
+(sllgen:make-define-datatypes the-lexical-spec the-grammar)
+
+(define show-the-datatypes
+  (lambda () (sllgen:list-define-datatypes the-lexical-spec the-grammar)))
+
+(define scan&parse
+  (sllgen:make-string-parser the-lexical-spec the-grammar))
+
+(define just-scan
+  (sllgen:make-string-scanner the-lexical-spec the-grammar))
+
+;;;;;;;;; interpreter
 
 (define-datatype expval expval?
   (num-val
@@ -65,8 +95,9 @@
   (list-val
     (lst list?)))
 
-(define (report-expval-extractor-error num val)
-  (eopl:error 'expval "expval-extractor-error ~s ~s" num val))
+(define report-expval-extractor-error
+  (lambda (variant value)
+    (eopl:error 'expval-extractors "Looking for a ~s, found ~s" variant value)))
 
 (define expval->num
   (lambda (val)
@@ -85,10 +116,6 @@
     (cases expval val
            (list-val (lst) lst)
            (else (report-expval-extractor-error 'lst val)))))
-
-; (define run
-;   (lambda (string)
-;     (value-of-program (scan&parse string))))
 
 (define value-of-program
   (lambda (pgm)
@@ -139,77 +166,48 @@
       (null?-exp (exp1)
         (let* ((val-exp1 (value-of exp1 env))
                (lst1 (expval->list val-exp1)))
-          (bool-val (null? lst1)))))))
+          (bool-val (null? lst1))))
+      (list-exp (exps)
+        (let ((exps-vals (map (lambda (e) (value-of e env)) exps)))
+          (list-val (apply list exps-vals))))
+      )))
 
-(check-equal?
-  (value-of-program
-    (a-program
-      (emptylist-exp)))
+(define run
+  (lambda (string)
+    (value-of-program (scan&parse string))))
+
+;;;;;;;;; interpreter tests
+
+; ExpVal = Int + Bool + List
+; DenVal = Int + Bool + List
+
+(check-equal? ; interpreter test without new extensions
+  (run "-(30,2)")
+  (num-val 28))
+(check-equal? ; empty list
+  (run "emptylist")
   (list-val '()))
-(check-equal?
-  (value-of-program
-    (a-program
-      (let-exp
-        'x
-        (const-exp 42)
-        (cons-exp
-          (var-exp 'x)
-          (cons-exp
-            (var-exp 'x)
-            (emptylist-exp))))))
+(check-equal? ; consed list using variables
+  (run "let x = 42 in cons(x, cons(x, emptylist))")
   (list-val (list (num-val 42) (num-val 42))))
-(check-equal?
-  (value-of-program
-    (a-program
-      (cons-exp
-        (cons-exp (const-exp 42) (emptylist-exp))
-        (cons-exp
-          (cons-exp (const-exp 24) (emptylist-exp))
-          (emptylist-exp)))))
+(check-equal? ; nested lists construction
+  (run "cons(cons(42, emptylist), cons(cons(24, emptylist), emptylist))")
   (list-val (list (list-val (list (num-val 42))) (list-val (list (num-val 24))))))
-(check-equal?
-  (value-of-program
-    (a-program
-      (let-exp
-        'x
-        (const-exp 42)
-        (car-exp
-          (cons-exp
-            (var-exp 'x)
-            (cons-exp
-              (var-exp 'x)
-              (emptylist-exp)))))))
+(check-equal? ; car() test
+  (run "let x = 42 in car(cons(x, cons(x, emptylist)))")
   (num-val 42))
-(check-equal?
-  (value-of-program
-    (a-program
-      (let-exp
-        'x
-        (const-exp 42)
-        (cdr-exp
-          (cons-exp
-            (var-exp 'x)
-            (cons-exp
-              (var-exp 'x)
-              (emptylist-exp)))))))
+(check-equal? ; cdr() test
+  (run "let x = 42 in cdr(cons(x, cons(x, emptylist)))")
   (list-val (list (num-val 42))))
-(check-equal?
-  (value-of-program
-    (a-program
-      (null?-exp
-        (cons-exp
-          (const-exp 42)
-          (emptylist-exp)))))
+(check-equal? ; null?() test
+  (run "null?(cons(42, emptylist))")
   (bool-val #f))
-(check-equal?
-  (value-of-program
-    (a-program
-      (let-exp
-        'x
-        (emptylist-exp)
-        (null?-exp (var-exp 'x)))))
+(check-equal? ; null?() test
+  (run "let x = emptylist in null?(x)")
   (bool-val #t))
-
-; TODO: Add parser rules
-; TODO: Tests for parser rules
-; TODO: list-exp should take ANY number of arguments, now it's 1+
+(check-equal? ; list() test
+  (run "let x = 42 in list(41, x, 43)")
+  (list-val (list (num-val 41) (num-val 42) (num-val 43))))
+(check-equal? ; list() empty test
+  (run "list()")
+  (list-val (list)))
