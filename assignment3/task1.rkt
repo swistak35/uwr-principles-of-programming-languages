@@ -4,6 +4,9 @@
 
 (require rackunit)
 
+(require (only-in racket/base
+           foldl))
+
 ;;;;;;;;; environment
 
 (define (init-env)
@@ -52,6 +55,9 @@
     (expression
       ("let" identifier "=" expression "in" expression)
       let-exp)   
+    (expression
+      ("let*" (arbno identifier "=" expression) "in" expression)
+      let*-exp)   
     (expression
       ("emptylist")
       emptylist-exp)
@@ -149,6 +155,16 @@
         (let ((val1 (value-of exp1 env)))
           (value-of body
             (extend-env var val1 env))))
+
+      ; let*
+      (let*-exp (vars exps body)
+        (let ((new-env (foldl
+                          (lambda (var1 exp1 env1)
+                            (extend-env var1 (value-of exp1 env1) env1))
+                          env vars exps)))
+          (value-of body new-env)))
+
+      ; list operators
       (emptylist-exp () (list-val '()))
       (cons-exp (car-exp cdr-exp)
         (let* ((val-car (value-of car-exp env))
@@ -211,3 +227,12 @@
 (check-equal? ; list() empty test
   (run "list()")
   (list-val (list)))
+(check-equal? ; let* works like usual let
+  (run "let* x = 42 in -(x, 2)")
+  (num-val 40))
+(check-equal? ; let* may assign multiple variables
+  (run "let* x = 42 y = 22 in -(x, y)")
+  (num-val 20))
+(check-equal? ; let* is binding immediately
+  (run "let x = 30 in let* x = -(x, 1) y = -(x, 2) in -(x, y)")
+  (num-val 2))
