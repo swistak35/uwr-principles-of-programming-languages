@@ -53,8 +53,7 @@
   (define-datatype proc proc?
     (procedure
       (var symbol?)
-      (body expression?)
-      (env environment?)))
+      (body expression?)))
 
 ;;;;;;;;;;;;;;;; environment structures ;;;;;;;;;;;;;;;;
 
