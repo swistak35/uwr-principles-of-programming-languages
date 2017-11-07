@@ -73,6 +73,11 @@ in let
     t4m = proc (f) proc(x) if zero?(x) then 0 else -((f -(x,1)),-4)
 in let times4 = (fix t4m)
    in (times4 3)" 12)
+
+      (lexical-scope "let x = 30 in
+                     let f = proc(z) -(z,x) in
+                     let x = 20 in
+                     (f 100)" 70)
        
       ))
   )
