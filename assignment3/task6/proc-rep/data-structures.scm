@@ -18,6 +18,10 @@
     (proc-val 
       (proc proc?)))
 
+  (define-datatype denval denval?
+    (direct-val (value expval?))
+    (delayed-val (body procedure?)))
+
 ;;; extractors:
 
   ;; expval->num : ExpVal -> Int

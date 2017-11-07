@@ -18,11 +18,11 @@
   (define init-env 
     (lambda ()
       (extend-env 
-       'i (num-val 1)
+       'i (direct-val (num-val 1))
        (extend-env
-        'v (num-val 5)
+        'v (direct-val (num-val 5))
         (extend-env
-         'x (num-val 10)
+         'x (direct-val (num-val 10))
          (empty-env))))))
 
 ;;;;;;;;;;;;;;;; environment constructors and observers ;;;;;;;;;;;;;;;;
@@ -44,10 +44,12 @@
       (if (empty-env? env)
 	(eopl:error 'apply-env "No binding for ~s" search-sym)
 	(let ((sym (extended-env-record->sym env))
-	      (val (extended-env-record->val env))
+	      (den-v (extended-env-record->val env))
 	      (old-env (extended-env-record->old-env env)))
 	  (if (eqv? search-sym sym)
-	    val
+	    (cases denval den-v
+	      (direct-val (val) val)
+	      (delayed-val (thunk) (thunk)))
 	    (apply-env old-env search-sym))))))
 
   )
