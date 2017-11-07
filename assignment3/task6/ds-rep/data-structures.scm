@@ -56,6 +56,10 @@
       (body expression?)
       (env environment?)))
 
+  (define-datatype denval denval?
+    (direct-val (value expval?))
+    (delayed-val (body procedure?)))
+
 ;;;;;;;;;;;;;;;; environment structures ;;;;;;;;;;;;;;;;
 
 ;; example of a data type built without define-datatype
@@ -75,7 +79,7 @@
       (or (empty-env-record? x)
           (and (pair? x)
                (symbol? (car (car x)))
-               (expval? (cadr (car x)))
+               (denval? (cadr (car x)))
                (environment? (cdr x))))))
 
   (define extended-env-record->sym

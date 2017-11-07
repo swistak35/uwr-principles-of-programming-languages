@@ -63,24 +63,24 @@
         (let-exp (var exp1 body)       
           (let ((val1 (value-of exp1 env)))
             (value-of body
-              (extend-env var val1 env))))
+              (extend-env var (direct-val val1) env))))
         
         (proc-exp (var body)
           (proc-val (procedure var body env)))
 
         (call-exp (rator rand)
           (let ((proc (expval->proc (value-of rator env)))
-                (arg (value-of rand env)))
-            (apply-procedure proc arg)))
+                (arg-thunk (lambda () (value-of rand env))))
+            (apply-procedure proc arg-thunk)))
 
         )))
 
   ;; apply-procedure : Proc * ExpVal -> ExpVal
   ;; Page: 79
   (define apply-procedure
-    (lambda (proc1 val)
+    (lambda (proc1 val-thunk)
       (cases proc proc1
         (procedure (var body saved-env)
-          (value-of body (extend-env var val saved-env))))))
+          (value-of body (extend-env var (delayed-val val-thunk) saved-env))))))
 
   )
