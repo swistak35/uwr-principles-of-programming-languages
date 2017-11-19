@@ -1,6 +1,6 @@
 (module data-structures (lib "eopl.ss" "eopl")
 
- ;; data structures for proc-lang/proc-rep
+  ;; data structures for letrec-lang.
 
   (require "lang.scm")                  ; for expression?
 
@@ -49,41 +49,24 @@
 ;;;;;;;;;;;;;;;; procedures ;;;;;;;;;;;;;;;;
 
   ;; proc? : SchemeVal -> Bool
-  ;; Page: 79
-  (define proc? procedure?)
+  ;; procedure : Var * Exp * Env -> Proc
+  (define-datatype proc proc?
+    (procedure
+      (bvar symbol?)
+      (body expression?)
+      (env environment?)))
 
-;;;;;;;;;;;;;;;; environment structures ;;;;;;;;;;;;;;;;
-
-;; example of a data type built without define-datatype
-
-  (define empty-env-record
-    (lambda () 
-      '()))
-
-  (define extended-env-record
-    (lambda (sym val old-env)
-      (cons (list sym val) old-env)))
-  
-  (define empty-env-record? null?)
-  
-  (define environment?
-    (lambda (x)
-      (or (empty-env-record? x)
-          (and (pair? x)
-               (symbol? (car (car x)))
-               (expval? (cadr (car x)))
-               (environment? (cdr x))))))
-
-  (define extended-env-record->sym
-    (lambda (r)
-      (car (car r))))
-
-  (define extended-env-record->val
-    (lambda (r)
-      (cadr (car r))))
-
-  (define extended-env-record->old-env
-    (lambda (r)
-      (cdr r)))
+  ;; Page: 86
+  (define-datatype environment environment?
+    (empty-env)
+    (extend-env 
+      (bvar symbol?)
+      (bval expval?)
+      (saved-env environment?))
+    (extend-env-rec
+      (id symbol?)
+      (bvar symbol?)
+      (body expression?)
+      (saved-env environment?)))
 
 )

@@ -1,11 +1,8 @@
 (module interp (lib "eopl.ss" "eopl")
   
-  ;; interpreter for the PROC language, using the procedural
-  ;; representation of procedures.
-
-  ;; The \commentboxes are the latex code for inserting the rules into
-  ;; the code in the book. These are too complicated to put here, see
-  ;; the text, sorry. 
+  ;; interpreter for the LETREC language.  The \commentboxes are the
+  ;; latex code for inserting the rules into the code in the book.
+  ;; These are too complicated to put here, see the text, sorry.
 
   (require "drscheme-init.scm")
 
@@ -25,6 +22,7 @@
           (value-of exp1 (init-env))))))
 
   ;; value-of : Exp * Env -> ExpVal
+  ;; Page: 83
   (define value-of
     (lambda (exp env)
       (cases expression exp
@@ -73,20 +71,22 @@
                 (arg (value-of rand env)))
             (apply-procedure proc arg)))
 
+        (letrec-exp (p-name b-var p-body letrec-body)
+          (value-of letrec-body
+            (extend-env-rec p-name b-var p-body env)))
+
         )))
 
-
-  ;; procedure : Var * Exp * Env -> Proc
-  ;; Page: 79
-  (define procedure
-    (lambda (var body env)
-      (lambda (val)
-        (value-of body (extend-env var val env)))))
-  
   ;; apply-procedure : Proc * ExpVal -> ExpVal
-  ;; Page: 79
-  (define apply-procedure
-    (lambda (proc val)
-      (proc val)))
 
+  (define apply-procedure
+    (lambda (proc1 arg)
+      (cases proc proc1
+        (procedure (var body saved-env)
+          (value-of body (extend-env var arg saved-env))))))
+  
   )
+  
+
+
+  

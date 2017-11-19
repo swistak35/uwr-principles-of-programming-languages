@@ -1,7 +1,7 @@
 (module lang (lib "eopl.ss" "eopl")                
 
-  ;; grammar for the PROC language
-  
+  ;; grammar for the LETREC language
+
   (require "drscheme-init.scm")
   
   (provide (all-defined-out))
@@ -47,9 +47,15 @@
       (expression
        ("(" expression expression ")")
        call-exp)
+
+      (expression
+        ("letrec"
+          identifier "(" identifier ")" "=" expression
+           "in" expression)
+        letrec-exp)
       
       ))
-
+  
   ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
   
   (sllgen:make-define-datatypes the-lexical-spec the-grammar)
