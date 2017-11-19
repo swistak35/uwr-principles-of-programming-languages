@@ -5,7 +5,7 @@
 
   (require "data-structures.scm")
 
-  (provide init-env empty-env extend-env apply-env)
+  (provide init-env)
 
 ;;;;;;;;;;;;;;;; initial environment ;;;;;;;;;;;;;;;;
   
@@ -29,18 +29,18 @@
 ;;;;;;;;;;;;;;;; environment constructors and observers ;;;;;;;;;;;;;;;;
 
   ;; Page: 86
-  (define apply-env
-    (lambda (env search-sym)
-      (cases environment env
-        (empty-env ()
-          (eopl:error 'apply-env "No binding for ~s" search-sym))
-        (extend-env (var val saved-env)
-	  (if (eqv? search-sym var)
-	    val
-	    (apply-env saved-env search-sym)))
-        (extend-env-rec (p-name b-var p-body saved-env)
-          (if (eqv? search-sym p-name)
-            (proc-val (procedure b-var p-body env))          
-            (apply-env saved-env search-sym))))))
+  ; (define apply-env
+  ;   (lambda (env search-sym)
+  ;     (cases environment env
+  ;       (empty-env ()
+  ;         (eopl:error 'apply-env "No binding for ~s" search-sym))
+  ;       (extend-env (var val saved-env)
+	  ; (if (eqv? search-sym var)
+	    ; val
+	    ; (apply-env saved-env search-sym)))
+  ;       (extend-env-rec (p-name b-var p-body saved-env)
+  ;         (if (eqv? search-sym p-name)
+  ;           (proc-val (procedure b-var p-body env))          
+  ;           (apply-env saved-env search-sym))))))
     
   )

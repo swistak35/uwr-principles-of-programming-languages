@@ -57,16 +57,48 @@
       (env environment?)))
 
   ;; Page: 86
-  (define-datatype environment environment?
-    (empty-env)
-    (extend-env 
-      (bvar symbol?)
-      (bval expval?)
-      (saved-env environment?))
-    (extend-env-rec
-      (id symbol?)
-      (bvar symbol?)
-      (body expression?)
-      (saved-env environment?)))
+  ; (define-datatype environment environment?
+  ;   (empty-env)
+  ;   (extend-env 
+  ;     (bvar symbol?)
+  ;     (bval expval?)
+  ;     (saved-env environment?))
+  ;   (extend-env-rec
+  ;     (id symbol?)
+  ;     (bvar symbol?)
+  ;     (body expression?)
+  ;     (saved-env environment?)))
+  (define environment? procedure?)
+
+  ;; empty-env : () -> Env
+  (define empty-env
+    (lambda ()
+      (lambda (search-var) 
+        (report-no-binding-found search-var))))
+
+  ;; extend-env : Var * Schemeval * Env -> Env
+  (define extend-env
+    (lambda (saved-var saved-val saved-env)
+      (lambda (search-var)
+        (if (eqv? search-var saved-var)
+          saved-val
+          (apply-env saved-env search-var)))))
+
+  (define extend-env-rec
+    (lambda (p-name b-var p-body saved-env)
+      (letrec ((new-env (lambda (search-var)
+                          (if (eqv? search-var p-name)
+                            (proc-val (procedure b-var p-body new-env))
+                            (apply-env saved-env search-var)))))
+        new-env)))
+
+
+  (define report-no-binding-found
+    (lambda (search-var)
+      (eopl:error 'apply-env "No binding for ~s" search-var)))
+
+  (define apply-env
+    (lambda (env search-var) 
+      (env search-var)))
 
 )
