@@ -71,9 +71,11 @@
                 (arg (value-of rand env)))
             (apply-procedure proc arg)))
 
-        (letrec-exp (p-name b-var p-body letrec-body)
+        (letrec-exp (p-names b-vars p-bodys letrec-body)
           (value-of letrec-body
-            (extend-env-rec p-name b-var p-body env)))
+            (extend-env-rec-*
+              (map list p-names b-vars p-bodys)
+              env)))
 
         )))
 

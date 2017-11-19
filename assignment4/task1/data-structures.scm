@@ -56,6 +56,9 @@
       (body expression?)
       (env environment?)))
 
+  (define (rec-proc? p)
+    (and (symbol? (car p)) (symbol? (cadr p)) (expression? (caddr p))))
+
   ;; Page: 86
   (define-datatype environment environment?
     (empty-env)
@@ -67,6 +70,12 @@
       (id symbol?)
       (bvar symbol?)
       (body expression?)
+      (saved-env environment?))
+    (extend-env-rec-*
+      (rec-procs (list-of rec-proc?))
+      ; (ids (list-of symbol?))
+      ; (bvars (list-of symbol?))
+      ; (bodys (list-of expression?))
       (saved-env environment?)))
 
 )

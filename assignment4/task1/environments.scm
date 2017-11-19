@@ -7,6 +7,9 @@
 
   (provide init-env empty-env extend-env apply-env)
 
+  (require (only-in racket/base
+                    findf))
+
 ;;;;;;;;;;;;;;;; initial environment ;;;;;;;;;;;;;;;;
   
   ;; init-env : () -> Env
@@ -41,6 +44,16 @@
         (extend-env-rec (p-name b-var p-body saved-env)
           (if (eqv? search-sym p-name)
             (proc-val (procedure b-var p-body env))          
-            (apply-env saved-env search-sym))))))
+            (apply-env saved-env search-sym)))
+        (extend-env-rec-* (rec-procs saved-env)
+          (if (memv search-sym (map car rec-procs))
+            (let ((searched-rec-proc (findf (lambda (rp) (eqv? (car rp) search-sym)) rec-procs)))
+              (proc-val
+                (procedure
+                  (cadr searched-rec-proc)
+                  (caddr searched-rec-proc)
+                  env)))
+            (apply-env saved-env search-sym)))
+        )))
     
   )

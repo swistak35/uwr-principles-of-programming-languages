@@ -50,7 +50,8 @@
 
       (expression
         ("letrec"
-          identifier "(" identifier ")" "=" expression
+          ; identifier "(" identifier ")" "=" expression
+          (arbno identifier "(" identifier ")" "=" expression)
            "in" expression)
         letrec-exp)
       
