@@ -33,13 +33,18 @@
             (translation-of exp2 senv)
             (translation-of exp3 senv)))
         (var-exp (var)
-          (nameless-var-exp
-            (apply-senv senv var)))
+          (build-nameless-var-exp senv var))
         (let-exp (var exp1 body)
           (nameless-let-exp
             (translation-of exp1 senv)            
             (translation-of body
               (extend-senv var senv))))
+        (letrec-exp (p-name b-var exp1 body)
+          (let* ((body-senv (extend-senv-rec p-name senv))
+                 (exp1-senv (extend-senv b-var body-senv)))
+            (nameless-letrec-exp
+              (translation-of exp1 exp1-senv)            
+              (translation-of body body-senv))))
         (proc-exp (var body)
           (nameless-proc-exp
             (translation-of body
@@ -71,18 +76,31 @@
   ;; Page: 95
   (define extend-senv
     (lambda (var senv)
-      (cons var senv)))
+      (cons (cons var #f) senv)))
+
+  (define extend-senv-rec
+    (lambda (var senv)
+      (cons (cons var #t) senv)))
+
   
   ;; apply-senv : Senv * Var -> Lexaddr
   ;; Page: 95
+  (define (build-nameless-var-exp senv var)
+    (let ((pos (apply-senv senv var)))
+      (if (cdr pos)
+        (nameless-letrec-var-exp (car pos))
+        (nameless-var-exp (car pos)))))
+
   (define apply-senv
     (lambda (senv var)
       (cond
         ((null? senv) (report-unbound-var var))
-        ((eqv? var (car senv))
-         0)
+        ((eqv? var (car (car senv))) (cons 0 (cdr (car senv))))
         (else
-          (+ 1 (apply-senv (cdr senv) var))))))
+          (let ((rec-result (apply-senv (cdr senv) var)))
+            (cons
+              (+ 1 (car rec-result))
+              (cdr rec-result)))))))
 
   (define report-unbound-var
     (lambda (var)

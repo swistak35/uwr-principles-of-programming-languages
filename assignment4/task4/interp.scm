@@ -63,11 +63,30 @@
         (nameless-var-exp (n)
           (apply-nameless-env nameless-env n))
 
+        (nameless-letrec-var-exp (n)
+          (let ((proc-result (expval->proc (apply-nameless-env nameless-env n))))
+            (cases proc proc-result
+              (procedure (body env)
+                (proc-val
+                  (procedure body
+                             (extend-nameless-env
+                               (proc-val (procedure body env))
+                               env)))))))
+
         (nameless-let-exp (exp1 body)
           (let ((val (value-of exp1 nameless-env)))
             (value-of body
               (extend-nameless-env val nameless-env))))
 
+        (nameless-letrec-exp (exp1 body)
+          (value-of body
+            (extend-nameless-env
+              (proc-val (procedure exp1 nameless-env))
+              nameless-env)))
+
+        ; (letrec-exp (p-name b-var p-body letrec-body)
+        ;             (value-of letrec-body
+        ;                       (extend-env-rec p-name b-var p-body env)))
         (nameless-proc-exp (body)
           (proc-val
             (procedure body nameless-env)))

@@ -63,6 +63,11 @@
       (expression
         ("%lexproc" expression)
         nameless-proc-exp)
+
+      (expression ("%nameless-letrec-var" number) nameless-letrec-var-exp)
+      (expression
+        ("%letrec" expression "in" expression)
+        nameless-letrec-exp)
       
       ))
 

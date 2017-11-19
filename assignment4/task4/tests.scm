@@ -74,5 +74,27 @@ in let
     t4m = proc (f) proc(x) if zero?(x) then 0 else -((f -(x,1)),-4)
 in let times4 = (fix t4m)
    in (times4 3)" 12)
+       ;; simple letrecs
+       (simple-letrec-1 "letrec f(x) = -(x,1) in (f 33)" 32)
+       (simple-letrec-2
+         "letrec f(x) = if zero?(x)  then 0 else -((f -(x,1)), -2) in (f 4)"
+         8)
+
+       (simple-letrec-3
+         "let m = -5 
+         in letrec f(x) = if zero?(x) then 0 else -((f -(x,1)), m) in (f 4)"
+         20)
+
+         ; ;; alas, no multiplication in this language.  Exercise: define
+         ; ;; multiplication as a letrec and then use it to define factorial.
+         ; ;;      (fact-of-6  "letrec
+         ; ;;  fact(x) = if zero?(x) then 1 else *(x, (fact sub1(x)))
+         ; ;;  in (fact 6)" 
+         ; ;;                  720)
+
+         (HO-nested-letrecs
+           "letrec even(odd)  = proc(x) if zero?(x) then 1 else (odd -(x,1))
+           in letrec  odd(x)  = if zero?(x) then 0 else ((even odd) -(x,1))
+           in (odd 13)" 1)
       ))
   )
