@@ -2,6 +2,9 @@
   
   (require "lang.scm")
 
+  (require (only-in racket/base
+                    filter))
+
   (provide translation-of-program)
   ;;;;;;;;;;;;;;;; lexical address calculator ;;;;;;;;;;;;;;;;
 
@@ -43,7 +46,7 @@
         (proc-exp (var body)
           (nameless-proc-exp
             (translation-of body
-              (extend-senv var senv))))
+              (extend-senv var (senv-only-with-freevars senv body)))))
         (call-exp (rator rand)
           (call-exp
             (translation-of rator senv)
@@ -55,6 +58,7 @@
     (lambda (exp)
       (eopl:error 'value-of 
         "Illegal expression in source code: ~s" exp)))
+
   
    ;;;;;;;;;;;;;;;; static environments ;;;;;;;;;;;;;;;;
   
@@ -96,5 +100,47 @@
         (extend-senv 'v
           (extend-senv 'x
             (empty-senv))))))
+
+  ;; filtering for freevars of static environments goes here
+
+  (define (freevars-without-var fvars var)
+    (filter
+      (lambda (v) (not (eq? v var)))
+      fvars))
+
+  (define (get-freevars exp)
+    (cases expression exp
+           (const-exp (num) '())
+           (var-exp (var) (list var))
+           (diff-exp (exp1 exp2)
+                     (let ((fvars-exp1 (get-freevars exp1))
+                           (fvars-exp2 (get-freevars exp2)))
+                       (append fvars-exp1 fvars-exp2)))
+           (zero?-exp (exp1) (get-freevars exp1))
+           (if-exp (exp1 exp2 exp3)
+                   (append
+                     (get-freevars exp1)
+                     (get-freevars exp2)
+                     (get-freevars exp3)))
+           (let-exp (var exp1 body)
+                    (append
+                      (get-freevars exp1)
+                      (freevars-without-var (get-freevars body) var)))
+           (proc-exp (var body)
+                     (freevars-without-var (get-freevars body) var))
+           (call-exp (rator rand)
+                     (append
+                       (get-freevars rator)
+                       (get-freevars rand)))
+           (else (report-invalid-source-expression exp))
+           ))
+
+  (define (restrict-senv-to-vars senv freevars)
+    (filter
+      (lambda (r) (member r freevars))
+      senv))
+
+  (define (senv-only-with-freevars senv exp)
+    (restrict-senv-to-vars senv (get-freevars exp)))
   
   )
