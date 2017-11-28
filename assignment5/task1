@@ -1,0 +1,13 @@
+
+
+
+      (value-of exp1 env0 store0) = (val1, store1)
+      (value-of (begin-exp (car exps) (cdr exps)) env0 store1) = (val2, store2)
+    ------------------------------------------------------------------------------  if `exps` not empty
+      (value-of (begin-exp exp1 exps) env0 store0) = (val2, store2)
+
+
+
+      (value-of exp1 env0 store0) = (val1, store1)
+    ------------------------------------------------------------------- if `exps` is empty
+      (value-of (begin-exp exp1 exps) env0 store0) = (val1, store1)
