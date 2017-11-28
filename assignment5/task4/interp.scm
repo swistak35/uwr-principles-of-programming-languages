@@ -40,10 +40,9 @@
   ;; Page: 110
   (define value-of-program 
     (lambda (pgm)
-      (initialize-store!)               ; new for explicit refs.
       (cases program pgm
         (a-program (exp1)
-          (answer->val (value-of exp1 (init-env) (get-store)))))))
+          (answer->val (value-of exp1 (init-env) (empty-store)))))))
 
   ;; value-of : Exp * Env -> ExpVal
   ;; Page: 113
@@ -119,24 +118,25 @@
 
         (newref-exp (exp1)
           (let* ((ans1 (value-of exp1 env store))
-                 (new-ref (newref (answer->val ans1))))
-            (an-answer (ref-val new-ref) (answer->store ans1))))
+                 (new-ref-store-pair (newref (answer->store ans1) (answer->val ans1)))
+                 (new-ref (car new-ref-store-pair))
+                 (new-store (cdr new-ref-store-pair)))
+            (an-answer (ref-val new-ref) new-store)))
 
         (deref-exp (exp1)
           (let ((ans1 (value-of exp1 env store)))
             (let ((ref1 (expval->ref (answer->val ans1))))
-              (an-answer (deref ref1) store))))
+              (an-answer (deref store ref1) store))))
 
         (setref-exp (exp1 exp2)
           (let* ((ans1 (value-of exp1 env store))
                  (ref (expval->ref (answer->val ans1)))
                  (ans2 (value-of exp2 env (answer->store ans1)))
-                 (val2 (answer->val ans2)))
+                 (val2 (answer->val ans2))
+                 (new-store (setref (answer->store ans2) ref val2)))
             (an-answer
-              (begin
-                (setref! ref val2)
-                (num-val 23))
-              (answer->store ans2))))
+              (num-val 23)
+              new-store)))
         )))
 
   ;; apply-procedure : Proc * ExpVal -> ExpVal
@@ -162,7 +162,7 @@
 		    var)
 		  (pretty-print (env->list new-env))
                   (eopl:printf "store =~%")
-                  (pretty-print (store->readable (get-store-as-list)))
+                  (pretty-print (store->readable (get-store-as-list store)))
                   (eopl:printf "~%")))
               (value-of body new-env store)))))))
 

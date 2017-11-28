@@ -2,8 +2,8 @@
   
   (require "drscheme-init.scm")
    
-  (provide initialize-store! reference? newref deref setref!
-    instrument-newref get-store get-store-as-list store?)
+  (provide empty-store reference? newref deref setref
+    instrument-newref get-store-as-list store?)
   
   (define instrument-newref (make-parameter #f))
   
@@ -14,7 +14,7 @@
 
   ;; the-store: a Scheme variable containing the current state of the
   ;; store.  Initially set to a dummy variable.
-  (define the-store 'uninitialized)
+  ; (define the-store 'uninitialized)
 
   (define store? list?)
 
@@ -23,18 +23,18 @@
   (define empty-store
     (lambda () '()))
   
-  ;; initialize-store! : () -> Sto
-  ;; usage: (initialize-store!) sets the-store to the empty-store
-  ;; Page 111
-  (define initialize-store!
-    (lambda ()
-      (set! the-store (empty-store))))
+  ; ;; initialize-store! : () -> Sto
+  ; ;; usage: (initialize-store!) sets the-store to the empty-store
+  ; ;; Page 111
+  ; (define initialize-store!
+  ;   (lambda ()
+  ;     (set! the-store (empty-store))))
 
-  ;; get-store : () -> Sto
-  ;; Page: 111
-  ;; This is obsolete.  Replaced by get-store-as-list below
-  (define get-store
-    (lambda () the-store))
+  ; ;; get-store : () -> Sto
+  ; ;; Page: 111
+  ; ;; This is obsolete.  Replaced by get-store-as-list below
+  ; (define get-store
+  ;   (lambda () the-store))
 
   ;; reference? : SchemeVal -> Bool
   ;; Page: 111
@@ -45,49 +45,48 @@
   ;; newref : ExpVal -> Ref
   ;; Page: 111
   (define newref
-    (lambda (val)
-      (let ((next-ref (length the-store)))
-        (set! the-store
-              (append the-store (list val)))
+    (lambda (store val)
+      (let ((next-ref (length store)))
         (when (instrument-newref)
-            (eopl:printf 
-             "newref: allocating location ~s with initial contents ~s~%"
-             next-ref val))                     
-        next-ref)))                     
+          (eopl:printf 
+            "newref: allocating location ~s with initial contents ~s~%"
+            next-ref val))                     
+        (cons
+          next-ref
+          (append store (list val))))))
 
   ;; deref : Ref -> ExpVal
   ;; Page 111
   (define deref 
-    (lambda (ref)
-      (list-ref the-store ref)))
+    (lambda (store ref)
+      (list-ref store ref)))
 
   ;; setref! : Ref * ExpVal -> Unspecified
   ;; Page: 112
-  (define setref!                       
-    (lambda (ref val)
-      (set! the-store
-        (letrec
-          ((setref-inner
-             ;; returns a list like store1, except that position ref1
-             ;; contains val. 
-             (lambda (store1 ref1)
-               (cond
-                 ((null? store1)
-                  (report-invalid-reference ref the-store))
-                 ((zero? ref1)
-                  (cons val (cdr store1)))
-                 (else
-                   (cons
-                     (car store1)
-                     (setref-inner
-                       (cdr store1) (- ref1 1))))))))
-          (setref-inner the-store ref)))))
+  (define setref
+    (lambda (store ref val)
+      (letrec
+        ((setref-inner
+            ;; returns a list like store1, except that position ref1
+            ;; contains val. 
+            (lambda (store1 ref1)
+              (cond
+                ((null? store1)
+                 (report-invalid-reference ref store))
+                ((zero? ref1)
+                 (cons val (cdr store1)))
+                (else
+                  (cons
+                    (car store1)
+                    (setref-inner
+                      (cdr store1) (- ref1 1))))))))
+        (setref-inner store ref))))
 
   (define report-invalid-reference
-    (lambda (ref the-store)
+    (lambda (ref store)
       (eopl:error 'setref
         "illegal reference ~s in store ~s"
-        ref the-store)))
+        ref store)))
 
   ;; get-store-as-list : () -> Listof(List(Ref,Expval))
   ;; Exports the current state of the store as a scheme list.
@@ -97,7 +96,7 @@
   ;; replaced by something cleverer.
   ;; Replaces get-store (p. 111)
    (define get-store-as-list
-     (lambda ()
+     (lambda (store)
        (letrec
          ((inner-loop
             ;; convert sto to list as if its car was location n
@@ -107,6 +106,6 @@
                 (cons
                   (list n (car sto))
                   (inner-loop (cdr sto) (+ n 1)))))))
-         (inner-loop the-store 0))))
+         (inner-loop store 0))))
 
   )
