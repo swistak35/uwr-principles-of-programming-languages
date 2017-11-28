@@ -158,6 +158,19 @@ in begin
     deref(deref(x))
    end"
    11)
+
+    (multiple-arg-proc-1 "
+      let f = proc (a, b, c) -(-(c,b),-(c,a))
+      in (f 1 10 100)"
+      -9)
+
+    (multiple-arg-proc-2 
+      "let g = let counter = newref(0) 
+               in proc (dummy) let d = setref(counter, -(deref(counter),-1))
+                               in deref(counter)
+       in let f = proc (a, b, c) -(-(c,b),a)
+          in (f (g 42) (g 42) (g 42))"
+      0)
       
       ))
   )

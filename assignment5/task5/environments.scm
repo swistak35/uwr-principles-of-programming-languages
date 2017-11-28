@@ -39,7 +39,7 @@
              => (lambda (n)
                   (proc-val
                     (procedure 
-                      (list-ref b-vars n)
+                      (list (list-ref b-vars n))
                       (list-ref p-bodies n)
                       env))))
             (else (apply-env saved-env search-sym)))))))

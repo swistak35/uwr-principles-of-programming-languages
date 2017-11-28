@@ -89,14 +89,26 @@
             (value-of body
               (extend-env var (answer->val ans1) env) (answer->store ans1))))
         
-        (proc-exp (var body)
-          (an-answer (proc-val (procedure var body env)) store))
+        (proc-exp (vars body)
+          (an-answer (proc-val (procedure vars body env)) store))
 
-        (call-exp (rator rand)
+        (call-exp (rator rands)
           (let* ((ans-rator (value-of rator env store))
                  (proc (expval->proc (answer->val ans-rator)))
-                 (ans-rand (value-of rand env (answer->store ans-rator))))
-            (apply-procedure proc (answer->val ans-rand) (answer->store ans-rand))))
+                 (ans-rands-and-store
+                   (foldl
+                     (lambda (rand res)
+                       (let* ((res-store (cdr res))
+                              (res-rands (car res))
+                              (ans-rand (value-of rand env res-store)))
+                         (cons
+                           (append res-rands (list (answer->val ans-rand)))
+                           (answer->store ans-rand))))
+                     (cons '() (answer->store ans-rator))
+                     rands))
+                 (ans-rands (car ans-rands-and-store))
+                 (ans-rands-store (cdr ans-rands-and-store)))
+            (apply-procedure proc ans-rands ans-rands-store)))
 
         (letrec-exp (p-names b-vars p-bodies letrec-body)
           (value-of letrec-body
@@ -150,21 +162,20 @@
 
   ;; instrumented version
   (define apply-procedure
-    (lambda (proc1 arg store)
+    (lambda (proc1 args store)
       (cases proc proc1
-        (procedure (var body saved-env)
-	  (let ((r arg))
-	    (let ((new-env (extend-env var r saved-env)))
+        (procedure (vars body saved-env)
+            (let ((new-env (foldl (lambda (v a tenv) (extend-env v a tenv)) saved-env vars args)))
 	      (when (instrument-let)
 		(begin
 		  (eopl:printf
 		    "entering body of proc ~s with env =~%"
-		    var)
+		    (car vars))
 		  (pretty-print (env->list new-env))
                   (eopl:printf "store =~%")
                   (pretty-print (store->readable (get-store-as-list store)))
                   (eopl:printf "~%")))
-              (value-of body new-env store)))))))
+              (value-of body new-env store))))))
 
 
   ; (trace value-of)
