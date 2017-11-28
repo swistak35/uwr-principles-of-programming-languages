@@ -11,6 +11,9 @@
   
   (provide value-of-program value-of instrument-let instrument-newref)
 
+  (require (only-in racket/vector
+                    vector-map))
+
 ;;;;;;;;;;;;;;;; switches for instrument-let ;;;;;;;;;;;;;;;;
 
   (define instrument-let (make-parameter #f))
@@ -133,21 +136,14 @@
 		    var)
 		  (pretty-print (env->list new-env))
                   (eopl:printf "store =~%")
-                  (pretty-print (store->readable (get-store-as-list)))
+                  (pretty-print (store->readable (get-store)))
                   (eopl:printf "~%")))
               (value-of body new-env)))))))
 
 
-  ;; store->readable : Listof(List(Ref,Expval)) 
-  ;;                    -> Listof(List(Ref,Something-Readable))
   (define store->readable
-    (lambda (l)
-      (map
-        (lambda (p)
-          (cons
-            (car p)
-            (expval->printable (cadr p))))
-        l)))
+    (lambda (v)
+      (vector-map expval->printable v)))
  
   )
   
