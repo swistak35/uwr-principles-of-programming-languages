@@ -11,6 +11,10 @@
   
   (provide value-of-program value-of instrument-let instrument-newref)
 
+  (require (only-in racket/base
+                    foldl))
+  (require trace)
+
 ;;;;;;;;;;;;;;;; switches for instrument-let ;;;;;;;;;;;;;;;;
 
   (define instrument-let (make-parameter #f))
@@ -20,6 +24,18 @@
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
+  (define-datatype answer answer?
+    (an-answer
+      (val expval?)
+      (store store?)))
+
+  (define (answer->val a)
+    (cases answer a
+           (an-answer (val store) val)))
+  (define (answer->store a)
+    (cases answer a
+           (an-answer (val store) store)))
+
   ;; value-of-program : Program -> ExpVal
   ;; Page: 110
   (define value-of-program 
@@ -27,87 +43,100 @@
       (initialize-store!)               ; new for explicit refs.
       (cases program pgm
         (a-program (exp1)
-          (value-of exp1 (init-env))))))
+          (answer->val (value-of exp1 (init-env) (get-store)))))))
 
   ;; value-of : Exp * Env -> ExpVal
   ;; Page: 113
   (define value-of
-    (lambda (exp env)
+    (lambda (exp env store)
       (cases expression exp
 
         ;\commentbox{ (value-of (const-exp \n{}) \r) = \n{}}
-        (const-exp (num) (num-val num))
+        (const-exp (num)
+                   (an-answer (num-val num) store))
 
         ;\commentbox{ (value-of (var-exp \x{}) \r) = (apply-env \r \x{})}
-        (var-exp (var) (apply-env env var))
+        (var-exp (var)
+                 (an-answer (apply-env env var) store))
 
         ;\commentbox{\diffspec}
         (diff-exp (exp1 exp2)
-          (let ((val1 (value-of exp1 env))
-                (val2 (value-of exp2 env)))
-            (let ((num1 (expval->num val1))
-                  (num2 (expval->num val2)))
-              (num-val
-                (- num1 num2)))))
+          (let* ((ans1 (value-of exp1 env store))
+                 (ans2 (value-of exp2 env (answer->store ans1)))
+                 (num1 (expval->num (answer->val ans1)))
+                 (num2 (expval->num (answer->val ans2))))
+              (an-answer (num-val (- num1 num2)) (answer->store ans2))))
       
         ;\commentbox{\zerotestspec}
         (zero?-exp (exp1)
-          (let ((val1 (value-of exp1 env)))
-            (let ((num1 (expval->num val1)))
-              (if (zero? num1)
-                (bool-val #t)
-                (bool-val #f)))))
+          (let ((ans1 (value-of exp1 env store)))
+            (let ((num1 (expval->num (answer->val ans1))))
+              (an-answer
+                (if (zero? num1)
+                  (bool-val #t)
+                  (bool-val #f))
+                (answer->store ans1)))))
               
         ;\commentbox{\ma{\theifspec}}
         (if-exp (exp1 exp2 exp3)
-          (let ((val1 (value-of exp1 env)))
-            (if (expval->bool val1)
-              (value-of exp2 env)
-              (value-of exp3 env))))
+          (let ((ans1 (value-of exp1 env store)))
+            (if (expval->bool (answer->val ans1))
+              (value-of exp2 env (answer->store ans1))
+              (value-of exp3 env (answer->store ans1)))))
 
         ;\commentbox{\ma{\theletspecsplit}}
         (let-exp (var exp1 body)       
-          (let ((val1 (value-of exp1 env)))
+          (let ((ans1 (value-of exp1 env store)))
             (value-of body
-              (extend-env var val1 env))))
+              (extend-env var (answer->val ans1) env) (answer->store ans1))))
         
         (proc-exp (var body)
-          (proc-val (procedure var body env)))
+          (an-answer (proc-val (procedure var body env)) store))
 
         (call-exp (rator rand)
-          (let ((proc (expval->proc (value-of rator env)))
-                (arg (value-of rand env)))
-            (apply-procedure proc arg)))
+          (let* ((ans-rator (value-of rator env store))
+                 (proc (expval->proc (answer->val ans-rator)))
+                 (ans-rand (value-of rand env (answer->store ans-rator))))
+            (apply-procedure proc (answer->val ans-rand) (answer->store ans-rand))))
 
         (letrec-exp (p-names b-vars p-bodies letrec-body)
           (value-of letrec-body
-            (extend-env-rec* p-names b-vars p-bodies env)))
+            (extend-env-rec* p-names b-vars p-bodies env) store))
 
         (begin-exp (exp1 exps)
-          (letrec 
-            ((value-of-begins
-               (lambda (e1 es)
-                 (let ((v1 (value-of e1 env)))
-                   (if (null? es)
-                     v1
-                     (value-of-begins (car es) (cdr es)))))))
-            (value-of-begins exp1 exps)))
+          (foldl
+            (lambda (e result-ans) (value-of e env (answer->store result-ans)))
+            (value-of exp1 env store)
+            exps))
+          ; (letrec 
+          ;   ((value-of-begins
+          ;      (lambda (e1 es)
+          ;        (let ((v1 (value-of e1 env)))
+          ;          (if (null? es)
+          ;            v1
+          ;            (value-of-begins (car es) (cdr es)))))))
+          ;   (value-of-begins exp1 exps)))
 
         (newref-exp (exp1)
-          (let ((v1 (value-of exp1 env)))
-            (ref-val (newref v1))))
+          (let* ((ans1 (value-of exp1 env store))
+                 (new-ref (newref (answer->val ans1))))
+            (an-answer (ref-val new-ref) (answer->store ans1))))
 
         (deref-exp (exp1)
-          (let ((v1 (value-of exp1 env)))
-            (let ((ref1 (expval->ref v1)))
-              (deref ref1))))
+          (let ((ans1 (value-of exp1 env store)))
+            (let ((ref1 (expval->ref (answer->val ans1))))
+              (an-answer (deref ref1) store))))
 
         (setref-exp (exp1 exp2)
-          (let ((ref (expval->ref (value-of exp1 env))))
-            (let ((v2 (value-of exp2 env)))
+          (let* ((ans1 (value-of exp1 env store))
+                 (ref (expval->ref (answer->val ans1)))
+                 (ans2 (value-of exp2 env (answer->store ans1)))
+                 (val2 (answer->val ans2)))
+            (an-answer
               (begin
-                (setref! ref v2)
-                (num-val 23)))))
+                (setref! ref val2)
+                (num-val 23))
+              (answer->store ans2))))
         )))
 
   ;; apply-procedure : Proc * ExpVal -> ExpVal
@@ -121,7 +150,7 @@
 
   ;; instrumented version
   (define apply-procedure
-    (lambda (proc1 arg)
+    (lambda (proc1 arg store)
       (cases proc proc1
         (procedure (var body saved-env)
 	  (let ((r arg))
@@ -135,9 +164,10 @@
                   (eopl:printf "store =~%")
                   (pretty-print (store->readable (get-store-as-list)))
                   (eopl:printf "~%")))
-              (value-of body new-env)))))))
+              (value-of body new-env store)))))))
 
 
+  ; (trace value-of)
   ;; store->readable : Listof(List(Ref,Expval)) 
   ;;                    -> Listof(List(Ref,Something-Readable))
   (define store->readable

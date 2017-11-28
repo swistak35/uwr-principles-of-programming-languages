@@ -3,7 +3,7 @@
   (require "drscheme-init.scm")
    
   (provide initialize-store! reference? newref deref setref!
-    instrument-newref get-store-as-list)
+    instrument-newref get-store get-store-as-list store?)
   
   (define instrument-newref (make-parameter #f))
   
@@ -15,6 +15,8 @@
   ;; the-store: a Scheme variable containing the current state of the
   ;; store.  Initially set to a dummy variable.
   (define the-store 'uninitialized)
+
+  (define store? list?)
 
   ;; empty-store : () -> Sto
   ;; Page: 111
