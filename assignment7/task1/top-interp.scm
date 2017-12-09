@@ -32,6 +32,8 @@
   
   (define equal-answer?
     (lambda (ans correct-ans)
+      ; (pretty-display (car (expval->list ans)))
+      ; (pretty-display (car (expval->list (sloppy->expval correct-ans))))
       (equal? ans (sloppy->expval correct-ans))))
   
   (define sloppy->expval 
@@ -39,6 +41,7 @@
       (cond
         ((number? sloppy-val) (num-val sloppy-val))
         ((boolean? sloppy-val) (bool-val sloppy-val))
+        ((list? sloppy-val) (list-val (map sloppy->expval sloppy-val)))
         (else
          (eopl:error 'sloppy->expval 
                      "Can't convert sloppy value to expval: ~s"
@@ -57,7 +60,8 @@
                 (run (cadr test))))
           (else (eopl:error 'run-one "no such test: ~s" test-name))))))
  
-  ;; (run-all)
+  (run-all)
+  ; (run-tests! run equal-answer? (list (assoc 'list-1 test-list)))
   
   )
 

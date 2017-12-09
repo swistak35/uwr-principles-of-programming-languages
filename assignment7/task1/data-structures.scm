@@ -14,7 +14,10 @@
     (bool-val
       (boolean boolean?))
     (proc-val 
-      (proc proc?)))
+      (proc proc?))
+    (list-val
+      (lst list?))
+    )
 
 ;;; extractors:
 
@@ -35,6 +38,12 @@
       (cases expval v
 	(proc-val (proc) proc)
 	(else (expval-extractor-error 'proc v)))))
+
+(define expval->list
+  (lambda (val)
+    (cases expval val
+           (list-val (lst) lst)
+           (else (expval-extractor-error 'lst val)))))
 
   (define expval-extractor-error
     (lambda (variant value)
@@ -73,7 +82,15 @@
       (saved-cont continuation?))
     (rand-cont             
       (val1 expval?)
-      (saved-cont continuation?)))
+      (saved-cont continuation?))
+    (list-rest-cont
+      (exps (list-of expression?))
+      (saved-env environment?)
+      (saved-cont continuation?))
+    (list-cons-cont
+      (head expval?)
+      (saved-cont continuation?))
+    )
 
 ;;;;;;;;;;;;;;;; procedures ;;;;;;;;;;;;;;;;
 

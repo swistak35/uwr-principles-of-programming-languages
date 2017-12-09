@@ -93,6 +93,18 @@ in let times4 = (fix t4m)
 "letrec even(odd)  = proc(x) if zero?(x) then 1 else (odd -(x,1))
    in letrec  odd(x)  = if zero?(x) then 0 else ((even odd) -(x,1))
    in (odd 13)" 1)
+
+      (list-0
+        "let x = list() in x" ())
+
+      (list-1
+        "let x = list(13) in x" (13))
+
+      (list-2
+        "let x = list(13, 42) in x" (13 42))
+
+      (list-3
+        "let x = list(13, 42, 17) in x" (13 42 17))
       
       ))
   )
