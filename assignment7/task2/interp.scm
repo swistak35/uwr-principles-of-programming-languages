@@ -12,6 +12,7 @@
 
   (require "lang.scm")
   (require "data-structures.scm")
+  (require "store.scm")
   (require "environments.scm")
 
   (provide value-of-program value-of/k)
@@ -22,6 +23,7 @@
   ;; Page: 143 and 154
   (define value-of-program 
     (lambda (pgm)
+      (initialize-store!)
       (cases program pgm
         (a-program (exp1)
           (value-of/k exp1 (init-env) (end-cont))))))  
@@ -32,7 +34,7 @@
     (lambda (exp env cont)
       (cases expression exp
         (const-exp (num) (apply-cont cont (num-val num)))
-        (var-exp (var) (apply-cont cont (apply-env env var)))
+        (var-exp (var) (apply-cont cont (deref (apply-env env var))))
         (proc-exp (var body)
           (apply-cont cont 
             (proc-val (procedure var body env))))
@@ -55,6 +57,7 @@
         (call-exp (rator rand) 
           (value-of/k rator env
             (rator-cont rand env cont)))
+        ; (assign-exp (var ))
    )))
 
   ;; apply-cont : Cont * ExpVal -> FinalAnswer
@@ -74,7 +77,7 @@
               (zero? (expval->num val)))))
         (let-exp-cont (var body saved-env saved-cont)
           (value-of/k body
-            (extend-env var val saved-env) saved-cont))
+            (extend-env var (newref val) saved-env) saved-cont))
         (if-test-cont (exp2 exp3 saved-env saved-cont)
           (if (expval->bool val)
              (value-of/k exp2 saved-env saved-cont)
@@ -102,7 +105,7 @@
       (cases proc proc1
         (procedure (var body saved-env)
           (value-of/k body
-            (extend-env var arg saved-env)
+            (extend-env var (newref arg) saved-env)
             cont)))))
   
   )

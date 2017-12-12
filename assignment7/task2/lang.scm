@@ -53,6 +53,10 @@
           identifier "(" identifier ")" "=" expression
            "in" expression)
         letrec-exp)
+
+      ; (expression
+      ;   ("set" identifier "=" expression)
+      ;   assign-exp)
       
       ))
 

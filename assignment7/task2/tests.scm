@@ -93,6 +93,37 @@ in let times4 = (fix t4m)
 "letrec even(odd)  = proc(x) if zero?(x) then 1 else (odd -(x,1))
    in letrec  odd(x)  = if zero?(x) then 0 else ((even odd) -(x,1))
    in (odd 13)" 1)
+
+      (assignment-test-1 "let x = 17
+                         in let dummy = set x = 27
+                         in x"
+                         27)
+
+      ; (gensym-test
+      ;   "let g = let count = 0 in proc(d) 
+      ;   let d = set count = -(count,-1)
+      ;   in count
+      ;   in -((g 11), (g 22))"
+      ;   -1)
+
+      ; (even-odd-via-set "
+      ;                   let x = 0
+      ;                   in letrec even(d) = if zero?(x) then 1 
+      ;                   else let d = set x = -(x,1)
+      ;                   in (odd d)
+      ;                   odd(d)  = if zero?(x) then 0 
+      ;                   else let d = set x = -(x,1)
+      ;                   in (even d)
+      ;                   in let d = set x = 13 in (odd -99)" 1)
+
+      ; (example-for-book-1 "
+      ;                     let f = proc (x) proc (y) 
+      ;                     begin
+      ;                     set x = -(x,-1);
+      ;                     -(x,y)
+      ;                     end
+      ;                     in ((f 44) 33)"
+      ;                     12)
       
       ))
   )

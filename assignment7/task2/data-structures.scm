@@ -1,6 +1,7 @@
 (module data-structures (lib "eopl.ss" "eopl")
 
   (require "lang.scm")                  ; for expression?
+  (require "store.scm")                 ; for reference?
 
   (provide (all-defined-out))               ; too many things to list
 
@@ -13,6 +14,8 @@
       (value number?))
     (bool-val
       (boolean boolean?))
+    (ref-val
+      (ref reference?))
     (proc-val 
       (proc proc?)))
 
@@ -35,6 +38,12 @@
       (cases expval v
 	(proc-val (proc) proc)
 	(else (expval-extractor-error 'proc v)))))
+
+(define expval->ref
+  (lambda (v)
+    (cases expval v
+	   (ref-val (ref) ref)
+	   (else (expval-extractor-error 'reference v)))))
 
   (define expval-extractor-error
     (lambda (variant value)
@@ -89,7 +98,7 @@
     (empty-env)
     (extend-env 
       (bvar symbol?)
-      (bval expval?)
+      (bval reference?)
       (saved-env environment?))
     (extend-env-rec
       (p-name symbol?)

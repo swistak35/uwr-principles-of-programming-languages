@@ -4,6 +4,7 @@
   ;; data-structures.scm. 
 
   (require "data-structures.scm")
+  (require "store.scm")
 
   (provide init-env empty-env extend-env apply-env)
 
@@ -19,12 +20,12 @@
   (define init-env 
     (lambda ()
       (extend-env 
-       'i (num-val 1)
-       (extend-env
-        'v (num-val 5)
+        'i (newref (num-val 1))
         (extend-env
-         'x (num-val 10)
-         (empty-env))))))
+          'v (newref (num-val 5))
+          (extend-env
+            'x (newref (num-val 10))
+            (empty-env))))))
 
 ;;;;;;;;;;;;;;;; environment constructors and observers ;;;;;;;;;;;;;;;;
 
@@ -40,7 +41,18 @@
 	    (apply-env saved-env search-sym)))
         (extend-env-rec (p-name b-var p-body saved-env)
           (if (eqv? search-sym p-name)
-            (proc-val (procedure b-var p-body env))          
+            (newref (proc-val (procedure b-var p-body env)))
             (apply-env saved-env search-sym))))))
+        ; (extend-env-rec* (p-names b-vars p-bodies saved-env)
+        ;                  (let ((n (location search-var p-names)))
+        ;                    ;; n : (maybe int)
+        ;                    (if n
+        ;                      (newref
+        ;                        (proc-val
+        ;                          (procedure 
+        ;                            (list-ref b-vars n)
+        ;                            (list-ref p-bodies n)
+        ;                            env)))
+        ;                      (apply-env saved-env search-var)))))))
     
   )
