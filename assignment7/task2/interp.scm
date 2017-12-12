@@ -57,7 +57,9 @@
         (call-exp (rator rand) 
           (value-of/k rator env
             (rator-cont rand env cont)))
-        ; (assign-exp (var ))
+        (assign-exp (var exp1)
+          (value-of/k exp1 env
+            (set-rhs-cont env var cont)))
    )))
 
   ;; apply-cont : Cont * ExpVal -> FinalAnswer
@@ -96,6 +98,12 @@
         (rand-cont (val1 saved-cont)
           (let ((proc (expval->proc val1)))
             (apply-procedure/k proc val saved-cont)))
+        (set-rhs-cont (saved-env var saved-cont)
+          (apply-cont
+            saved-cont
+            (begin
+              (setref! (apply-env saved-env var) val)
+              (num-val 27))))
         )))
 
   ;; apply-procedure/k : Proc * ExpVal * Cont -> FinalAnswer

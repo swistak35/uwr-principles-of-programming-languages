@@ -82,7 +82,12 @@
       (saved-cont continuation?))
     (rand-cont             
       (val1 expval?)
-      (saved-cont continuation?)))
+      (saved-cont continuation?))
+    (set-rhs-cont
+      (saved-env environment?)
+      (var identifier?)
+      (saved-cont continuation?))
+    )
 
 ;;;;;;;;;;;;;;;; procedures ;;;;;;;;;;;;;;;;
 
