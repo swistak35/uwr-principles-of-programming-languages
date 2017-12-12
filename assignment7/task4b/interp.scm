@@ -19,10 +19,12 @@
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
   (define trampoline
-    (lambda (bounce)
-      (if (expval? bounce)
-        bounce
-        (trampoline (bounce)))))
+    (lambda (bnc)
+      (cases bounce bnc
+        (thunk-bounce (thunk)
+          (trampoline (thunk)))
+        (expval-bounce (ev)
+          ev))))
 
   ;; value-of-program : Program -> FinalAnswer
   ;; Page: 143 and 154
@@ -38,11 +40,11 @@
   (define value-of/k
     (lambda (exp env cont)
       (cases expression exp
-        (const-exp (num) (apply-cont cont (num-val num)))
-        (var-exp (var) (apply-cont cont (apply-env env var)))
+        (const-exp (num) (apply-cont cont (expval-bounce (num-val num))))
+        (var-exp (var) (apply-cont cont (expval-bounce (apply-env env var))))
         (proc-exp (var body)
           (apply-cont cont 
-            (proc-val (procedure var body env))))
+            (expval-bounce (proc-val (procedure var body env)))))
         (letrec-exp (p-name b-var p-body letrec-body)
           (value-of/k letrec-body
             (extend-env-rec p-name b-var p-body env)
@@ -68,7 +70,9 @@
   ;; Page: 148
   (define apply-cont
     (lambda (cont val)
-      (lambda ()
+      (thunk-bounce (lambda ()
+        ; (pretty-display cont)
+        ; (pretty-display val)
         (cases continuation cont
           (end-cont () 
             (begin
@@ -78,30 +82,30 @@
           ;; or (logged-print val)  ; if you use drscheme-init-cps.scm
           (zero1-cont (saved-cont)
             (apply-cont saved-cont
-              (bool-val
-                (zero? (expval->num val)))))
+              (expval-bounce (bool-val
+                (zero? (expval->num (trampoline val)))))))
           (let-exp-cont (var body saved-env saved-cont)
             (value-of/k body
-              (extend-env var val saved-env) saved-cont))
+              (extend-env var (trampoline val) saved-env) saved-cont))
           (if-test-cont (exp2 exp3 saved-env saved-cont)
-            (if (expval->bool val)
+            (if (expval->bool (trampoline val))
               (value-of/k exp2 saved-env saved-cont)
               (value-of/k exp3 saved-env saved-cont)))
           (diff1-cont (exp2 saved-env saved-cont)
             (value-of/k exp2
               saved-env (diff2-cont val saved-cont)))
           (diff2-cont (val1 saved-cont)
-            (let ((num1 (expval->num val1))
-                  (num2 (expval->num val)))
+            (let ((num1 (expval->num (trampoline val1)))
+                  (num2 (expval->num (trampoline val))))
               (apply-cont saved-cont
-                (num-val (- num1 num2)))))
+                (expval-bounce (num-val (- num1 num2))))))
           (rator-cont (rand saved-env saved-cont)
             (value-of/k rand saved-env
-              (rand-cont val saved-cont)))
+              (rand-cont (trampoline val) saved-cont)))
           (rand-cont (val1 saved-cont)
             (let ((proc (expval->proc val1)))
-              (apply-procedure/k proc val saved-cont)))
-          ))))
+              (apply-procedure/k proc (trampoline val) saved-cont)))
+          )))))
 
   ;; apply-procedure/k : Proc * ExpVal * Cont -> FinalAnswer
   ;; Page 152 and 155
@@ -113,6 +117,9 @@
             (extend-env var arg saved-env)
             cont)))))
   
+  ; (trace value-of/k)
+  ; (trace apply-cont)
+  ; (trace trampoline)
   )
   
 

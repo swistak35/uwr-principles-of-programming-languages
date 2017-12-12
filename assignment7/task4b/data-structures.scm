@@ -16,6 +16,15 @@
     (proc-val 
       (proc proc?)))
 
+  (define (anything? x) #t)
+
+  (define-datatype bounce bounce?
+    (thunk-bounce
+      (thunk anything?))
+    (expval-bounce
+      (expval expval?))
+    )
+
 ;;; extractors:
 
   (define expval->num
@@ -23,6 +32,8 @@
       (cases expval v
 	(num-val (num) num)
 	(else (expval-extractor-error 'num v)))))
+
+  ; (trace expval->num)
 
   (define expval->bool
     (lambda (v)
@@ -65,7 +76,7 @@
       (saved-env environment?)
       (saved-cont continuation?))
     (diff2-cont                
-      (val1 expval?)
+      (val1 bounce?)
       (saved-cont continuation?))
     (rator-cont            
       (rand expression?)
