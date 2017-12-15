@@ -41,8 +41,7 @@
     (try-cont
       (cont continuation?)
       (saved-catch catch-continuation?))
-    (raise1-cont
-      (saved-cont continuation?))
+    (raise1-cont)
     )
 
   (define-datatype catch-continuation catch-continuation?
@@ -126,7 +125,7 @@
 
         (raise-exp (exp1)
           (value-of/k exp1 env
-            (raise1-cont cont)
+            (raise1-cont)
             catch-cont))
         )))
 
@@ -160,7 +159,7 @@
         (try-cont (saved-cont saved-catch)
           (apply-cont saved-cont saved-catch val))
         ;; val is the value of the argument to raise
-        (raise1-cont (saved-cont)
+        (raise1-cont ()
           ;; we put the short argument first to make the trace more readable.
           (apply-handler val catch-cont))
         )))
