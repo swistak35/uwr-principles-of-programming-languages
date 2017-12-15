@@ -52,8 +52,7 @@
       (env environment?)
       (cont continuation?))
     (raise1-cont
-      (try-cont try-continuation?)
-      (saved-cont continuation?))
+      (try-cont try-continuation?))
     )
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
@@ -121,7 +120,7 @@
 
           (raise-exp (exp1)
             (value-of/k exp1 env
-              (raise1-cont current-try cont)))
+              (raise1-cont current-try)))
           ))))
 
   ;; apply-cont : continuation * expval -> final-expval
@@ -154,7 +153,7 @@
         (try-cont (var handler-exp saved-env saved-cont)
           (apply-cont saved-cont val))
         ;; val is the value of the argument to raise
-        (raise1-cont (saved-try saved-cont)
+        (raise1-cont (saved-try)
           ;; we put the short argument first to make the trace more readable.
           (apply-handler val saved-try))
         )))
@@ -188,7 +187,7 @@
              (unop-arg-cont (saved-try unop saved-cont) saved-try)
              (rator-cont (saved-try rand saved-env saved-cont) saved-try)
              (rand-cont (saved-try val1 saved-cont) saved-try)
-             (raise1-cont (saved-try saved-cont) saved-try)
+             (raise1-cont (saved-try) saved-try)
              )))
 
 
