@@ -388,6 +388,36 @@ in
 "
         44)
 
+      ; (two-threads-2 "
+      ;   letrec 
+      ;     noisy (l) = if null?(l) 
+      ;                 then 0 
+      ;                 else begin
+      ;                        print(car(l));
+      ;                        yield();
+      ;                        (noisy cdr(l))
+      ;                      end
+      ;   in
+      ;     begin
+      ;       spawn(proc (d) (noisy [1,2,3,4,5,6,7,8,9,10])) ;
+      ;       spawn(proc (d) (noisy [0,0,0,0,0,0,0,0,0,0,0]));
+      ;       print(100);
+      ;       33
+      ;     end
+      ;   "
+      ;   33)
+      (two-threads-3 "
+        letrec
+                noisy1 (c) = if zero?(c) then 0 else begin print(1); yield(); (noisy1 -(c, 1)) end
+                noisy2 (c) = if zero?(c) then 0 else begin print(2); (noisy2 -(c, 1)) end
+        in begin
+                spawn(proc (d) (noisy1 5));
+                spawn(proc (d) (noisy2 20));
+                print(100);
+                33
+          end
+        
+" 33)
  
       ))
   )

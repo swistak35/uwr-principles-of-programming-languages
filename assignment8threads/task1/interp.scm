@@ -97,7 +97,9 @@
 
         (yield-exp ()
           (place-on-ready-queue!
-            (lambda () (apply-cont cont (num-val 99))))
+            (a-thread
+              (lambda () (apply-cont cont (num-val 99)))
+              the-time-remaining))
           (run-next-thread))
 
         (mutex-exp ()
@@ -124,7 +126,9 @@
       (if (time-expired?)
         (begin
           (place-on-ready-queue!
-            (lambda () (apply-cont cont val)))
+            (a-thread
+              (lambda () (apply-cont cont val))
+              the-max-time-slice))
           (run-next-thread))
         (begin
 
@@ -164,21 +168,27 @@
             (spawn-cont (saved-cont)
               (let ((proc1 (expval->proc val)))
                 (place-on-ready-queue!
-                  (lambda ()
-                    (apply-procedure proc1
-                      (num-val 28)
-                      (end-subthread-cont))))
+                  (a-thread
+                    (lambda ()
+                      (apply-procedure proc1
+                        (num-val 28)
+                        (end-subthread-cont)))
+                    the-max-time-slice))
               (apply-cont saved-cont (num-val 73))))
 
             (wait-cont (saved-cont)
               (wait-for-mutex
                 (expval->mutex val)
-                (lambda () (apply-cont saved-cont (num-val 52)))))
+                (a-thread
+                  (lambda () (apply-cont saved-cont (num-val 52)))
+                  the-time-remaining)))
 
             (signal-cont (saved-cont)
               (signal-mutex
                 (expval->mutex val)
-                (lambda () (apply-cont saved-cont (num-val 53)))))
+                (a-thread
+                  (lambda () (apply-cont saved-cont (num-val 53)))
+                  the-time-remaining)))
 
             (unop-arg-cont (unop1 cont)
               (apply-unop unop1 val cont))
