@@ -233,6 +233,15 @@
        in ((index 5) list(2, 3))"
       -1)
 
+  (letcc-1
+    "letcc escape in (escape 42)" 42)
+
+  (letcc-2
+    "let f = proc(y) -(y, 1)
+      in let some = letcc escape in let dummy2 = (escape 42) in 9
+          in (f some)" 41)
+
+
     ))
 
 

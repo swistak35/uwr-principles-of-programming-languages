@@ -73,10 +73,15 @@
         ("raise" expression)
         raise-exp)
 
+      (expression
+        ("letcc" identifier "in" expression)
+        letcc-exp)
+
       (unary-op ("null?") null?-unop)
       (unary-op ("car")   car-unop)
       (unary-op ("cdr" )  cdr-unop)
       (unary-op ("zero?") zero?-unop)
+      
 
       ))
 

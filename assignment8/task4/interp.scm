@@ -11,42 +11,6 @@
 
   (define trace-apply-procedure (make-parameter #f))
 
-;;;;;;;;;;;;;;;; continuations ;;;;;;;;;;;;;;;;
-
-
-  (define-datatype continuation continuation?
-    (end-cont)                          ; []
-    (diff1-cont                       ; cont[(- [] (value-of e2 env))]
-      (exp2 expression?)
-      (env environment?)
-      (cont continuation?))
-    (diff2-cont                         ; cont[(- val1 [])]
-      (val1 expval?)
-      (cont continuation?))
-    (unop-arg-cont
-      (unop unary-op?)
-      (cont continuation?))
-    (if-test-cont
-      (exp2 expression?)
-      (exp3 expression?)
-      (env environment?)
-      (cont continuation?))
-    (rator-cont            ; cont[(apply-proc [] (value-of rand env))]
-      (rand expression?)
-      (env environment?)
-      (cont continuation?))
-    (rand-cont                          ; cont[(apply-proc val1 [])]
-      (val1 expval?)
-      (cont continuation?))
-    (try-cont
-      (var symbol?)
-      (handler-exp expression?)
-      (env environment?)
-      (cont continuation?))
-    (raise1-cont
-      (saved-cont continuation?))
-    )
-
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
   ;; value-of-program : Program -> ExpVal
@@ -111,7 +75,15 @@
 
         (raise-exp (exp1)
           (value-of/k exp1 env
-            (raise1-cont cont))))))
+            (raise1-cont cont)))
+
+        (letcc-exp (var exp1)
+          (value-of/k
+            exp1
+            (extend-env var (cont-val cont) env)
+            cont))
+
+        )))
 
   ;; apply-cont : continuation * expval -> final-expval
 
@@ -137,8 +109,8 @@
           (value-of/k rand saved-env
             (rand-cont val saved-cont)))
         (rand-cont (val1 saved-cont)
-          (let ((proc (expval->proc val1)))
-            (apply-procedure proc val saved-cont)))
+          ; (let ((proc (expval->proc val1)))
+            (apply-procedure val1 val saved-cont))
         ;; the body of the try finished normally-- don't evaluate the handler
         (try-cont (var handler-exp saved-env saved-cont)
           (apply-cont saved-cont val))
@@ -181,12 +153,17 @@
   ;; apply-procedure : procedure * expval * cont -> final-expval
 
   (define apply-procedure
-    (lambda (proc1 arg cont)
-      (cases proc proc1
-        (procedure (var body saved-env)
-          (value-of/k body
-            (extend-env var arg saved-env)
-            cont)))))
+    (lambda (proclike1 arg cont)
+      (cases expval proclike1
+        (proc-val (proc1)
+          (cases proc proc1
+            (procedure (var body saved-env)
+              (value-of/k body
+                (extend-env var arg saved-env)
+                cont))))
+        (cont-val (cont1)
+          (apply-cont cont1 arg))
+        (else (eopl:error 'apply-procedure "bad expval for apply-procedure")))))
 
 
   (define apply-unop

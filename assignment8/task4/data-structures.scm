@@ -9,6 +9,39 @@
 ;;; an expressed value is either a number, a boolean, a procval, or a
 ;;; list of expvals.
 
+  (define-datatype continuation continuation?
+    (end-cont)                          ; []
+    (diff1-cont                       ; cont[(- [] (value-of e2 env))]
+      (exp2 expression?)
+      (env environment?)
+      (cont continuation?))
+    (diff2-cont                         ; cont[(- val1 [])]
+      (val1 expval?)
+      (cont continuation?))
+    (unop-arg-cont
+      (unop unary-op?)
+      (cont continuation?))
+    (if-test-cont
+      (exp2 expression?)
+      (exp3 expression?)
+      (env environment?)
+      (cont continuation?))
+    (rator-cont            ; cont[(apply-proc [] (value-of rand env))]
+      (rand expression?)
+      (env environment?)
+      (cont continuation?))
+    (rand-cont                          ; cont[(apply-proc val1 [])]
+      (val1 expval?)
+      (cont continuation?))
+    (try-cont
+      (var symbol?)
+      (handler-exp expression?)
+      (env environment?)
+      (cont continuation?))
+    (raise1-cont
+      (saved-cont continuation?))
+    )
+
   (define-datatype expval expval?
     (num-val
       (value number?))
@@ -16,6 +49,8 @@
       (boolean boolean?))
     (proc-val 
       (proc proc?))
+    (cont-val
+      (cont continuation?))
     (list-val
       (lst (list-of expval?))))
 
@@ -38,6 +73,12 @@
       (cases expval v
 	(proc-val (proc) proc)
 	(else (expval-extractor-error 'proc v)))))
+
+  (define expval->cont
+    (lambda (v)
+      (cases expval v
+	     (cont-val (cont) cont)
+	     (else (expval-extractor-error 'cont v)))))
 
   (define expval->list
     (lambda (v)
