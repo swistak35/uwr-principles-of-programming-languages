@@ -36,7 +36,7 @@
              (run-next-thread))
             (else
               (setref! ref-to-closed? #t)
-              (th)))))))
+              ((thread->thunk th))))))))
 
   ;; signal-mutex : Mutex * Thread -> FinalAnswer
   ;; Page 190
@@ -56,6 +56,6 @@
                     (setref!
                       ref-to-wait-queue
                       other-waiting-ths)))))
-            (th))))))
+            ((thread->thunk th)))))))
 
   )
