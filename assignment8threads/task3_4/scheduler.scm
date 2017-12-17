@@ -11,6 +11,8 @@
     
     a-thread
     thread->thunk
+    current-thread-id
+    get-next-thread-id!
     the-time-remaining
     the-max-time-slice
     time-expired?
@@ -28,18 +30,24 @@
   
   (define-datatype thread thread?
     (a-thread
+      (id integer?)
       (saved-thunk anything?)
       (rest-time integer?)))
+
+  (define thread->id
+    (lambda (v)
+      (cases thread v
+             (a-thread (id saved-thunk rest-time) id))))
 
   (define thread->thunk
     (lambda (v)
       (cases thread v
-        (a-thread (saved-thunk rest-time) saved-thunk))))
+        (a-thread (id saved-thunk rest-time) saved-thunk))))
 
   (define thread->rest-time
     (lambda (v)
       (cases thread v
-        (a-thread (saved-thunk rest-time) rest-time))))
+        (a-thread (id saved-thunk rest-time) rest-time))))
 
 
   ;; components of the scheduler state:
@@ -50,6 +58,9 @@
   (define the-max-time-slice    'uninitialized)
   (define the-time-remaining    'uninitialized)
 
+  (define the-thread-counter 'uninitialized)
+  (define current-thread-id 'uninitialized)
+
   ;; initialize-scheduler! : Int -> Unspecified
   (define initialize-scheduler!
     (lambda (ticks)
@@ -57,10 +68,16 @@
       (set! the-final-answer 'uninitialized)
       (set! the-max-time-slice ticks)
       (set! the-time-remaining the-max-time-slice) 
+      (set! the-thread-counter 0)
+      (set! current-thread-id 0)
       ))
   
   ;;;;;;;;;;;;;;;; the final answer ;;;;;;;;;;;;;;;;
 
+  (define (get-next-thread-id!)
+    (set! the-thread-counter (+ the-thread-counter 1))
+    the-thread-counter)
+        
   ;; place-on-ready-queue! : Thread -> Unspecified
   ;; Page: 184  
   (define place-on-ready-queue!
@@ -78,6 +95,7 @@
           (lambda (first-ready-thread other-ready-threads)
             (set! the-ready-queue other-ready-threads)            
             (set! the-time-remaining (thread->rest-time first-ready-thread))
+            (set! current-thread-id (thread->id first-ready-thread))
             ((thread->thunk first-ready-thread))
             )))))
 

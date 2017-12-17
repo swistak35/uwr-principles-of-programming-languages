@@ -418,7 +418,25 @@ in
           end
         
 " 33)
- 
+
+      (tid-available-in-parent
+        "let childtid = spawn(proc (d) -(42,13))
+          in childtid" 1)
+
+      (tid-available-in-parent-2
+        "let boring = proc(d) -(42, 13)
+          in begin
+              spawn(boring);
+              spawn(boring)
+            end" 2)
+
+      (tid-available-in-child
+        "let result = -1
+          in letrec waitforresult(dummy) = if zero?(-(result, -1)) then (waitforresult dummy) else result
+              in let th1 = spawn(proc (tid) set result = tid)
+                  in (waitforresult 42)" 1)
+
+
       ))
   )
 

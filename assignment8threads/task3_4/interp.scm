@@ -98,6 +98,7 @@
         (yield-exp ()
           (place-on-ready-queue!
             (a-thread
+              current-thread-id
               (lambda () (apply-cont cont (num-val 99)))
               the-time-remaining))
           (run-next-thread))
@@ -127,6 +128,7 @@
         (begin
           (place-on-ready-queue!
             (a-thread
+              current-thread-id
               (lambda () (apply-cont cont val))
               the-max-time-slice))
           (run-next-thread))
@@ -166,20 +168,23 @@
                 (apply-cont cont (num-val 26))))
 
             (spawn-cont (saved-cont)
-              (let ((proc1 (expval->proc val)))
+              (let ((proc1 (expval->proc val))
+                    (thread-id (get-next-thread-id!)))
                 (place-on-ready-queue!
                   (a-thread
+                    thread-id
                     (lambda ()
                       (apply-procedure proc1
-                        (num-val 28)
+                        (num-val thread-id)
                         (end-subthread-cont)))
                     the-max-time-slice))
-              (apply-cont saved-cont (num-val 73))))
+              (apply-cont saved-cont (num-val thread-id))))
 
             (wait-cont (saved-cont)
               (wait-for-mutex
                 (expval->mutex val)
                 (a-thread
+                  current-thread-id
                   (lambda () (apply-cont saved-cont (num-val 52)))
                   the-time-remaining)))
 
@@ -187,6 +192,7 @@
               (signal-mutex
                 (expval->mutex val)
                 (a-thread
+                  current-thread-id
                   (lambda () (apply-cont saved-cont (num-val 53)))
                   the-time-remaining)))
 
