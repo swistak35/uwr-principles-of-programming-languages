@@ -66,7 +66,7 @@
   ;; make sure this is initially off.
   (trace-apply-procedure #f)
 
-  ;; (run-all)
+  (run-all)
 
   ;; to generate the big trace in the text, say
   ;; (trace-apply-procedure #t)
