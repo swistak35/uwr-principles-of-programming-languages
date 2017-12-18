@@ -436,6 +436,13 @@ in
               in let th1 = spawn(proc (tid) set result = tid)
                   in (waitforresult 42)" 1)
 
+      (parent-id-available-in-child
+        "let result = -1
+          in letrec waitforresult(dummy) = if zero?(-(result, -1)) then (waitforresult dummy) else result
+              in let th1 = spawn(proc (tid) let parentid = tid in spawn(proc (tid) set result = parentid))
+                  in (waitforresult 42)" 1)
+
+
 
       ))
   )
