@@ -32,6 +32,8 @@
   
   ;;;;;;;;;;;;;;;; the state ;;;;;;;;;;;;;;;;
 
+  (define instrument-threads (make-parameter #f))
+
   (define (anything? x) #t)
   
   (define-datatype thread thread?
@@ -90,6 +92,10 @@
   ;; Page: 184  
   (define place-on-ready-queue!
     (lambda (th)
+      (when (instrument-threads)
+        (eopl:printf 
+          "place-on-ready-queue!: putting thread ~s to queue~%"
+            (thread->id th)))                     
       (set! the-ready-queue
         (enqueue the-ready-queue th))))
 
@@ -104,6 +110,10 @@
         the-final-answer
         (dequeue the-ready-queue
           (lambda (first-ready-thread other-ready-threads)
+            (when (instrument-threads)
+              (eopl:printf 
+                "run-next-thread: removing thread ~s from ready-queue~%"
+                (thread->id first-ready-thread)))                     
             (set! the-ready-queue other-ready-threads)            
             (set! the-time-remaining (thread->rest-time first-ready-thread))
             (set! current-thread-id (thread->id first-ready-thread))
