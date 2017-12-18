@@ -442,6 +442,52 @@ in
               in let th1 = spawn(proc (tid) let parentid = tid in spawn(proc (tid) set result = parentid))
                   in (waitforresult 42)" 1)
 
+      (test-simple-false-kill "kill(42)" #f)
+
+      (test-simple-true-kill
+        "letrec endless(dummy) = (endless -(dummy,1))
+          in let childid = spawn(proc (d) (endless 42))
+              in kill(childid)" #t)
+
+      (test-false-kill-2
+        "letrec ending(x) = if zero?(x) then 0 else (ending -(x,1))
+          in let childid = spawn(proc (d) (ending 100))
+              in kill(111)" #f)
+
+      (test-cannot-kill-itself
+        "let result = -1
+          in letrec waitforresult(dummy) = if zero?(-(result, -1)) then (waitforresult dummy) else result
+            in let suicide = proc(tid)
+                              begin
+                                kill(tid);
+                                set result = 1
+                              end
+                in
+                  begin
+                    spawn(suicide);
+                    (waitforresult 42)
+                  end
+                  " 1)
+
+      (test-kill-parent
+        "let result = -1
+          in letrec waitforsomecycles(cycles) = if zero?(cycles) then 0 else (waitforsomecycles -(cycles, 1))
+            in let parent = proc(th1id)
+                              let stupidchild = proc(th2id) kill(th1id)
+                              in 
+                                begin
+                                  spawn(stupidchild);
+                                  (waitforsomecycles 100);
+                                  set result = 0
+                                end
+                in begin
+                    spawn(parent);
+                    (waitforsomecycles 1000);
+                    result
+                  end
+                " -1)
+                  
+
 
 
       ))

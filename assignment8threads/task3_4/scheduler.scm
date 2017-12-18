@@ -4,6 +4,9 @@
   (require "queues.scm")
   (require "data-structures.scm")       ; for continuation?
   (require "lang.scm")                  ; for expval?
+
+  (require (only-in racket/base
+                    filter))
   
   (provide
     initialize-scheduler!
@@ -21,6 +24,7 @@
     place-on-ready-queue!
     run-next-thread
 
+    kill-threads
     
     )
   
@@ -117,5 +121,16 @@
     (lambda ()
 	  ; (eopl:printf "D")
       (set! the-time-remaining (- the-time-remaining 1))))
+
+  (define (kill-threads kill-id)
+    (let* ((new-ready-queue
+             (filter (lambda (th) (not (eq? kill-id (thread->id th)))) the-ready-queue))
+           (ready-queue-changed? (not (eq? (length new-ready-queue) (length the-ready-queue)))))
+      ; (pretty-display new-ready-queue)
+      ; (pretty-display the-ready-queue)
+      (set! the-ready-queue new-ready-queue)
+      ready-queue-changed?))
+
+  ; (trace kill-threads)
 
   )

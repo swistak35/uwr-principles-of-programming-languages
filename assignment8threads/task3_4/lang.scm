@@ -83,6 +83,10 @@
         ("signal" "(" expression ")")
         signal-exp)
 
+      (expression
+        ("kill" "(" expression ")")
+        kill-exp)
+
       ;; other unary operators
 
       (expression

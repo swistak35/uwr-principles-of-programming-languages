@@ -121,6 +121,8 @@
       (saved-cont continuation?))
     (signal-cont 
       (saved-cont continuation?))
+    (kill-cont
+      (saved-cont continuation?))
 
     (unop-arg-cont
       (unop1 unop?)

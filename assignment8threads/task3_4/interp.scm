@@ -114,6 +114,10 @@
           (value-of/k exp env
             (signal-cont cont)))
 
+        (kill-exp (exp)
+          (value-of/k exp env
+            (kill-cont cont)))
+
         (unop-exp (unop1 exp)
           (value-of/k exp env
             (unop-arg-cont unop1 cont)))
@@ -195,6 +199,11 @@
                   current-thread-id
                   (lambda () (apply-cont saved-cont (num-val 53)))
                   the-time-remaining)))
+
+            (kill-cont (saved-cont)
+              (apply-cont
+                saved-cont
+                (bool-val (kill-threads (expval->num val)))))
 
             (unop-arg-cont (unop1 cont)
               (apply-unop unop1 val cont))
