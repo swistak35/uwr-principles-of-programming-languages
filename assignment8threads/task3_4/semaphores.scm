@@ -16,9 +16,11 @@
   ;; Page: 188
   (define new-mutex
     (lambda ()
-      (a-mutex
-        (newref #f)                     
-        (newref '()))))                 
+      (let ((waitlist (newref '())))
+        (add-mutex-waitlist! waitlist)
+        (a-mutex
+          (newref #f)                     
+          waitlist))))
 
   ; wait queue, initially empty
 

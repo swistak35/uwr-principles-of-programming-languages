@@ -2,6 +2,7 @@
   
   (require "drscheme-init.scm")
   (require "queues.scm")
+  (require "store.scm")                    ; for store ops
   (require "data-structures.scm")       ; for continuation?
   (require "lang.scm")                  ; for expval?
 
@@ -25,6 +26,7 @@
     run-next-thread
 
     kill-threads
+    add-mutex-waitlist!
     
     )
   
@@ -64,6 +66,7 @@
 
   (define the-thread-counter 'uninitialized)
   (define current-thread-id 'uninitialized)
+  (define mutex-waitlists 'uninitialized)
 
   ;; initialize-scheduler! : Int -> Unspecified
   (define initialize-scheduler!
@@ -74,6 +77,7 @@
       (set! the-time-remaining the-max-time-slice) 
       (set! the-thread-counter 0)
       (set! current-thread-id 0)
+      (set! mutex-waitlists '())
       ))
   
   ;;;;;;;;;;;;;;;; the final answer ;;;;;;;;;;;;;;;;
@@ -88,6 +92,9 @@
     (lambda (th)
       (set! the-ready-queue
         (enqueue the-ready-queue th))))
+
+  (define (add-mutex-waitlist! wl)
+    (set! mutex-waitlists (cons wl mutex-waitlists)))
 
   ;; run-next-thread : () -> FinalAnswer
   ;; Page: 184    
@@ -122,14 +129,34 @@
 	  ; (eopl:printf "D")
       (set! the-time-remaining (- the-time-remaining 1))))
 
-  (define (kill-threads kill-id)
+  (define (kill-threads-from-ready-queue! kill-id)
     (let* ((new-ready-queue
              (filter (lambda (th) (not (eq? kill-id (thread->id th)))) the-ready-queue))
            (ready-queue-changed? (not (eq? (length new-ready-queue) (length the-ready-queue)))))
-      ; (pretty-display new-ready-queue)
-      ; (pretty-display the-ready-queue)
       (set! the-ready-queue new-ready-queue)
       ready-queue-changed?))
+
+  (define (kill-threads-from-waiting-list! wl kill-id)
+    (let* ((new-wl
+             (filter (lambda (th) (not (eq? kill-id (thread->id th)))) (deref wl)))
+           (waitlist-changed? (not (eq? (length new-wl) (length (deref wl))))))
+      (setref! wl new-wl)
+      waitlist-changed?))
+
+  (define (kill-threads-from-waiting-lists! kill-id)
+    (if (null? mutex-waitlists)
+      #f
+      (or
+        (apply
+          values
+          (map
+            (lambda (wl) (kill-threads-from-waiting-list! wl kill-id))
+            mutex-waitlists)))))
+
+  (define (kill-threads kill-id)
+    (or
+      (kill-threads-from-ready-queue! kill-id)
+      (kill-threads-from-waiting-lists! kill-id)))
 
   ; (trace kill-threads)
 

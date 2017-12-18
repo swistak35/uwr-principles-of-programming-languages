@@ -486,6 +486,16 @@ in
                     result
                   end
                 " -1)
+
+      (test-kill-waiting
+        "let mut = mutex()
+          in letrec waitawhile(c) = if zero?(c) then 0 else (waitawhile -(c, 1))
+          in let stupidthread = proc(tid) wait(mut)
+          in let naivethread = proc(tid) begin (waitawhile 100); wait(mut); signal(mut) end
+          in let tid1 = spawn(stupidthread)
+          in let tid2 = spawn(naivethread)
+          in begin (waitawhile 1000); kill(tid2) end
+          " #t)
                   
 
 
