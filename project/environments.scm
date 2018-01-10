@@ -7,11 +7,6 @@
 
 
   ;; init-env : () -> Env
-  ;; usage: (init-env) = [i=1, v=5, x=10]
-  ;; (init-env) builds an environment in which i is bound to the
-  ;; expressed value 1, v is bound to the expressed value 5, and x is
-  ;; bound to the expressed value 10.
-  ;; Page: 69
   (define init-env 
     (lambda ()
       (extend-env 
