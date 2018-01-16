@@ -18,6 +18,8 @@
       (proc proc?))
     (ref-val
       (ref reference?))
+    (list-val
+      (lst (list-of expval?)))
     )
 
   (define (expval->num v)
@@ -39,6 +41,11 @@
     (cases expval v
       (ref-val (ref) ref)
       (else (expval-extractor-error 'reference v))))
+
+  (define (expval->list v)
+    (cases expval v
+      (list-val (lst) lst)
+      (else (expval-extractor-error 'list v))))
 
   (define (expval-extractor-error variant value)
     (eopl:error 'expval-extractors "Looking for a ~s, found ~s" variant value))

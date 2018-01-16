@@ -102,6 +102,32 @@
               (begin
                 (setref! ref v2)
                 (num-val 23)))))
+
+        (cons-exp (car-exp cdr-exp)
+          (let* ((val-car (value-of car-exp env))
+                 (val-cdr (value-of cdr-exp env))
+                 (val-cdr-list (expval->list val-cdr)))
+            (list-val (cons val-car val-cdr-list))))
+
+        (car-exp (exp1)
+          (let* ((val-exp1 (value-of exp1 env))
+                 (lst1 (expval->list val-exp1)))
+            (car lst1)))
+
+        (cdr-exp (exp1)
+          (let* ((val-exp1 (value-of exp1 env))
+                 (lst1 (expval->list val-exp1)))
+            (list-val (cdr lst1))))
+
+        (null?-exp (exp1)
+          (let* ((val-exp1 (value-of exp1 env))
+                 (lst1 (expval->list val-exp1)))
+            (bool-val (null? lst1))))
+
+        (list-exp (exps)
+          (let ((exps-vals (map (lambda (e) (value-of e env)) exps)))
+            (list-val exps-vals)))
+
         )))
 
   ;; apply-procedure : Proc * ExpVal -> ExpVal

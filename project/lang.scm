@@ -69,6 +69,26 @@
         ("setref" "(" expression "," expression ")")
         setref-exp)
 
+      (expression
+        ("[" (separated-list expression ",") "]")
+        list-exp)
+
+      (expression
+        ("cons" "(" expression "," expression ")")
+        cons-exp)
+
+      (expression
+        ("car" "(" expression ")")
+        car-exp)
+
+      (expression
+        ("cdr" "(" expression ")")
+        cdr-exp)
+
+      (expression
+        ("null?" "(" expression ")")
+        null?-exp)
+
       ))
 
   ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;

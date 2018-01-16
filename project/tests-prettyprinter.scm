@@ -91,4 +91,32 @@ end")
         ,(setref-exp (var-exp 'x) (const-exp 42))
         "setref(x, 42)")
 
+      (list-1
+        ,(list-exp (list))
+        "[]")
+
+      (list-2
+        ,(list-exp (list (const-exp 17)))
+        "[17]")
+
+      (list-3
+        ,(list-exp (list (const-exp 42) (const-exp 17)))
+        "[42, 17]")
+
+      (car-1
+        ,(car-exp (list-exp (list (const-exp 42) (const-exp 17))))
+        "car([42, 17])")
+
+      (cdr-1
+        ,(cdr-exp (list-exp (list (const-exp 42) (const-exp 17))))
+        "cdr([42, 17])")
+
+      (null?-1
+        ,(null?-exp (list-exp (list (const-exp 42) (const-exp 17))))
+        "null?([42, 17])")
+
+      (cons-1
+        ,(cons-exp (const-exp 63) (list-exp (list (const-exp 42) (const-exp 17))))
+        "cons(63, [42, 17])")
+
       )))

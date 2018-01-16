@@ -163,5 +163,19 @@
             deref(deref(x))
           end"
         11)
+
+      (list-1 "[1, 2, 3]" (1 2 3))
+      (list-2 "[]" ())
+      (cons-1 "cons(42, [])" (42))
+      (cons-2 "cons(42, cons(17, []))" (42 17))
+      (car-1 "car(cons(42, cons(17, [])))" 42)
+      (car-2 "let x = [1, 2, 3] in car(x)" 1)
+      (car-3 "car([])" error) ; Make this error more sane, not internal interpreter detail
+      (cdr-1 "cdr([])" error) ; Same.
+      (cdr-2 "cdr([2,3])" (3))
+      (cdr-3 "cdr([3,2,1])" (2 1))
+      (null-1 "null?([])" #t)
+      (null-2 "null?([1])" #f)
+      (null-3 "null?(42)" error) ; Same as above - not needed when type inference finished
       
   )))
