@@ -49,23 +49,46 @@ else 3")
 "let x = 3
 in x")
 
-      ; ;; make sure the body and rhs get evaluated
-      ; (eval-let-body "let x = 3 in -(x,1)" 2)
-      ; (eval-let-rhs "let x = -(4,1) in -(x,1)" 2)
+      (proc-val-1
+        ,(proc-exp 'y (diff-exp (const-exp 42) (var-exp 'y)))
+        "proc(y) -(42,y)")
 
-      ; ;; check nested let and shadowing
-      ; (simple-nested-let "let x = 3 in let y = 4 in -(x,y)" -1)
-      ; (check-shadowing-in-body "let x = 3 in let x = 4 in x" 4)
-      ; (check-shadowing-in-rhs "let x = 3 in let x = -(x,1) in x" 2)
+      (call-1
+        ,(call-exp (var-exp 'f) (const-exp 42))
+        "(f 42)")
 
-      ; ;; simple applications
-      ; (apply-proc-in-rator-pos "(proc(x) -(x,1)  30)" 29)
-      ; (apply-simple-proc "let f = proc (x) -(x,1)
-      ;                    in (f 30)" 29)
-      ; (let-to-proc-1 "(proc(f)(f 30)  proc(x)-(x,1))" 29)
+      (letrec-1
+        ,(letrec-exp '(foo bar) '(x y)
+                     (list
+                       (diff-exp (const-exp 42) (var-exp 'x))
+                       (var-exp 'y))
+                     (call-exp (var-exp 'foo) (call-exp (var-exp 'bar) (const-exp 17))))
+"letrec foo(x) = -(42,x)
+       bar(y) = y
+in (foo (bar 17))")
 
-      ; (nested-procs "((proc (x) proc (y) -(x,y)  5) 6)" -1)
-      ; (nested-procs2 "let f = proc(x) proc (y) -(x,y)
-      ;                in ((f -(10,5)) 6)" -1)
+      (begin-1
+        ,(begin-exp
+           (call-exp (var-exp 'f) (const-exp 17))
+           (list
+             (call-exp (var-exp 'g) (const-exp 42))
+             (call-exp (var-exp 'h) (const-exp -123))))
+"begin
+  (f 17);
+  (g 42);
+  (h -123)
+end")
+
+      (newref-1
+        ,(newref-exp (const-exp 42))
+        "newref(42)")
+
+      (deref-1
+        ,(deref-exp (var-exp 'y))
+        "deref(y)")
+
+      (setref-1
+        ,(setref-exp (var-exp 'x) (const-exp 42))
+        "setref(x, 42)")
 
       )))

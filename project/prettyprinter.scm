@@ -50,7 +50,51 @@
               (format "in ~a" (pretty-print body)))
             "\n"))
 
-        (else
-          (eopl:error 'pretty-printer "Unsupported ~s" exp)))))
+        (proc-exp (var body)
+          (format "proc(~a) ~a" (symbol->string var) (pretty-print body)))
 
+        (call-exp (rator rand)
+          (format "(~a ~a)" (pretty-print rator) (pretty-print rand)))
+
+        (letrec-exp (p-names b-vars p-bodies letrec-body)
+          (string-join
+            (list
+              (format "letrec ~a(~a) = ~a"
+                (symbol->string (car p-names))
+                (symbol->string (car b-vars))
+                (pretty-print (car p-bodies)))
+              (string-join
+                (map
+                  (lambda (p-name b-var p-body)
+                    (format "       ~a(~a) = ~a" p-name b-var (pretty-print p-body)))
+                  (cdr p-names) (cdr b-vars) (cdr p-bodies))
+                "\n")
+              (format "in ~a" (pretty-print letrec-body)))
+            "\n"))
+
+        (begin-exp (exp1 exps)
+          (string-join
+            (list
+              "begin"
+              (string-join
+                (map
+                  (lambda (expn)
+                    (format "  ~a" (pretty-print expn))) (cons exp1 exps))
+                ";\n")
+              "end")
+            "\n"))
+
+        (newref-exp (exp1)
+          (format "newref(~a)" (pretty-print exp1)))
+
+        (deref-exp (exp1)
+          (format "deref(~a)" (pretty-print exp1)))
+
+        (setref-exp (exp1 exp2)
+          (format "setref(~a, ~a)" (pretty-print exp1) (pretty-print exp2)))
+
+        ; (else
+        ;   (eopl:error 'pretty-printer "Unsupported ~s" exp))
+
+        )))
   )
