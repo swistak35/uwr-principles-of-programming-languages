@@ -54,25 +54,25 @@ in x")
         "proc(y) -(42,y)")
 
       (call-1
-        ,(call-exp (var-exp 'f) (const-exp 42))
+        ,(call-exp (var-exp 'f) (list (const-exp 42)))
         "(f 42)")
 
       (letrec-1
-        ,(letrec-exp '(foo bar) '(x y)
+        ,(letrec-exp '(foo bar) '((x) (y z))
                      (list
                        (diff-exp (const-exp 42) (var-exp 'x))
-                       (var-exp 'y))
-                     (call-exp (var-exp 'foo) (call-exp (var-exp 'bar) (const-exp 17))))
+                       (diff-exp (var-exp 'y) (var-exp 'z)))
+                     (call-exp (var-exp 'foo) (list (call-exp (var-exp 'bar) (list (const-exp 17) (const-exp 7))))))
 "letrec foo(x) = -(42,x)
-       bar(y) = y
-in (foo (bar 17))")
+       bar(y, z) = -(y,z)
+in (foo (bar 17 7))")
 
       (begin-1
         ,(begin-exp
-           (call-exp (var-exp 'f) (const-exp 17))
+           (call-exp (var-exp 'f) (list (const-exp 17)))
            (list
-             (call-exp (var-exp 'g) (const-exp 42))
-             (call-exp (var-exp 'h) (const-exp -123))))
+             (call-exp (var-exp 'g) (list (const-exp 42)))
+             (call-exp (var-exp 'h) (list (const-exp -123)))))
 "begin
   (f 17);
   (g 42);
