@@ -177,5 +177,21 @@
       (null-1 "null?([])" #t)
       (null-2 "null?([1])" #f)
       (null-3 "null?(42)" error) ; Same as above - not needed when type inference finished
+
+      (multiarg-letrec-1 "letrec foo() = 42 in -((foo), 1)" 41)
+      (multiarg-letrec-2 "letrec foo(x, y, z) = -(-(x,y),z) in (foo 100 10 1)" 89)
+      (map-1 "
+        letrec map(f, xs) = if null?(xs) then [] else cons((f car(xs)), (map f cdr(xs)))
+               increment(n) = -(n,-1)
+        in (map increment [-1,0,1,2])" (0 1 2 3))
+
+      (filter-1 "
+             letrec filter(f, xs) = if null?(xs)
+                                    then []
+                                    else if (f car(xs))
+                                         then cons(car(xs), (filter f cdr(xs)))
+                                         else (filter f cdr(xs))
+                    iszero(n) = zero?(n)
+             in (filter iszero [0,1,2,0,1,2])" (0 0))
       
   )))
