@@ -1,11 +1,8 @@
 (module prettyprinter (lib "eopl.ss" "eopl")
 
-  (require "drscheme-init.scm")
-
-  (require "lang.scm")
   (require "data-structures.scm")
-  ; (require "environments.scm")
-  ; (require "store.scm")
+  (require "drscheme-init.scm")
+  (require "lang.scm")
   (require (only-in racket/base
                     format))
   (require (only-in racket/string

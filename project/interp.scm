@@ -133,15 +133,6 @@
 
         )))
 
-  ;; apply-procedure : Proc * ExpVal -> ExpVal
-  ;; 
-  ;; uninstrumented version
-  ;;   (define apply-procedure
-  ;;    (lambda (proc1 arg)
-  ;;      (cases proc proc1
-  ;;        (procedure (bvar body saved-env)
-  ;;          (value-of body (extend-env bvar arg saved-env))))))
-
   ;; instrumented version
   (define apply-procedure
     (lambda (proc1 args)
@@ -176,7 +167,3 @@
         l)))
  
   )
-  
-
-
-  
