@@ -20,10 +20,60 @@
       (right type?))
     )
 
+  (define-datatype equality equality?
+    (an-equality
+      (left type?)
+      (right type?)))
+  (define (eq->left eq)
+    (cases equality eq
+      (an-equality (eq-left eq-right) eq-left)))
+  (define (eq->right eq)
+    (cases equality eq
+      (an-equality (eq-left eq-right) eq-right)))
+
+  (define-datatype answer answer?
+    (an-answer
+      (answer-type type?)
+      (answer-constraints (list-of equality?))))
+  (define (answer->type ans)
+    (cases answer ans
+      (an-answer (ans-type ans-constraints) ans-type)))
+  (define (answer->constraints ans)
+    (cases answer ans
+      (an-answer (ans-type ans-constraints) ans-constraints)))
+
+  (define (unify equalities)
+    (if (null? equalities)
+      #t
+      (let* ((cur-eq (car equalities))
+             (cur-eq-left (eq->left cur-eq))
+             (cur-eq-right (eq->right cur-eq)))
+        (if (equal? cur-eq-left cur-eq-right)
+          (unify (cdr equalities))
+          #f))))
+
   (define (infer exp)
+    (let* ((exp-ans (infer-exp exp))
+           (exp-type (answer->type exp-ans))
+           (exp-constraints (answer->constraints exp-ans)))
+      (if (unify exp-constraints)
+        exp-type
+        (eopl:error 'infer "Unification of constraints failed ~s" exp-constraints))))
+
+  (define (infer-exp exp)
     (cases expression exp
       (const-exp (num)
-        (nat-type))
+        (an-answer
+          (nat-type)
+          '()))
+
+      (zero?-exp (exp1)
+        (let ((exp1-answer (infer-exp exp1)))
+          (an-answer
+            (bool-type)
+            (cons
+              (an-equality (nat-type) (answer->type exp1-answer))
+              (answer->constraints exp1-answer)))))
 
       ; (var-exp ())
       (else (eopl:error 'infer "Unhandled expression ~s" exp))

@@ -10,6 +10,15 @@
       (positive-const
         ,(const-exp 11)
         ,(nat-type))
+
+      (iszero-1
+        ,(zero?-exp (const-exp 42))
+        ,(bool-type))
+
+      (iszero-2
+        ,(zero?-exp (zero?-exp (const-exp 42)))
+        error)
+
       )
     )
   )
