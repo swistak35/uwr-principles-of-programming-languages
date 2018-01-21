@@ -122,6 +122,11 @@
         (apply-subst subst id))
       (else eopl:error 'subst-in-type "Unhandled type ~s" stype)))
 
+  (define (infer/pgm pgm)
+    (cases program pgm
+      (a-program (exp1)
+        (infer exp1))))
+
   (define (infer exp)
     (initialize-typevar-counter!)
     (let* ((exp-ans (infer-exp exp (empty-aset)))
