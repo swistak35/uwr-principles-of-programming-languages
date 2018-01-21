@@ -12,3 +12,12 @@
     (right type?))
   (var-type
     (id integer?)))
+
+(define typevar-counter 'uninitialized)
+(define (initialize-typevar-counter!)
+  (set! typevar-counter 0))
+(define (get-fresh-typevar-id)
+  (set! typevar-counter (+ typevar-counter 1))
+  typevar-counter)
+(define (get-fresh-typevar)
+  (var-type (get-fresh-typevar-id)))

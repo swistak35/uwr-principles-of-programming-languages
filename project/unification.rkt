@@ -4,22 +4,6 @@
 
 (provide (all-defined-out))
 
-(define-datatype assumption-set assumption-set?
-  (empty-aset)
-  (extend-aset 
-    (bvar symbol?)
-    (btype type?)
-    (saved-aset assumption-set?)))
-
-(define (apply-aset aset var)
-  (cases assumption-set aset
-    (empty-aset ()
-      (eopl:error 'apply-aset "No binding for ~s" var))
-    (extend-aset (bvar btype saved-aset)
-      (if (eqv? var bvar)
-        btype
-        (apply-aset saved-aset var)))))
-
 (define-datatype substitution substitution?
   (empty-subst)
   (extend-subst 
@@ -55,6 +39,9 @@
 (define (unify/var-bool equalities saved-subst id)
   (unify equalities (extend-subst id (bool-type) saved-subst)))
 
+(define (unify/var-arrow equalities saved-subst id arrow)
+  (unify equalities (extend-subst id arrow saved-subst)))
+
 (define (unify/simple equalities saved-subst left right)
   (if (equal? left right)
     (unify equalities saved-subst)
@@ -73,6 +60,8 @@
               (unify/var-int (cdr equalities) subst id1))
             (bool-type ()
               (unify/var-bool (cdr equalities) subst id1))
+            (arrow-type (left right)
+              (unify/var-arrow (cdr equalities) subst id1 cur-eq-right))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (int-type ()
           (cases type cur-eq-right
@@ -83,6 +72,11 @@
           (cases type cur-eq-right
             (var-type (id1)
               (unify/var-bool (cdr equalities) subst id1))
+            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
+        (arrow-type (left right)
+          (cases type cur-eq-right
+            (var-type (id1)
+              (unify/var-arrow (cdr equalities) subst id1 cur-eq-left))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))))
 

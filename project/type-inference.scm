@@ -12,76 +12,34 @@
   
   (provide (all-defined-out))
 
-  (define typevar-counter 'uninitialized)
-  (define (initialize-typevar-counter!)
-    (set! typevar-counter 0))
-  (define (get-fresh-typevar-id)
-    (set! typevar-counter (+ typevar-counter 1))
-    typevar-counter)
-  (define (get-fresh-typevar)
-    (var-type (get-fresh-typevar-id)))
+  (define-datatype assumption-set assumption-set?
+    (empty-aset)
+    (extend-aset 
+      (bvar symbol?)
+      (btype type?)
+      (saved-aset assumption-set?)))
 
-  (define-datatype equality equality?
-    (an-equality
-      (left type?)
-      (right type?)))
-  (define (eq->left eq)
-    (cases equality eq
-      (an-equality (eq-left eq-right) eq-left)))
-  (define (eq->right eq)
-    (cases equality eq
-      (an-equality (eq-left eq-right) eq-right)))
+  (define (apply-aset aset var)
+    (cases assumption-set aset
+      (empty-aset ()
+        (eopl:error 'apply-aset "No binding for ~s" var))
+      (extend-aset (bvar btype saved-aset)
+        (if (eqv? var bvar)
+          btype
+          (apply-aset saved-aset var)))))
 
   (define-datatype answer answer?
     (an-answer
       (answer-type type?)
       (answer-constraints (list-of equality?))))
+
   (define (answer->type ans)
     (cases answer ans
       (an-answer (ans-type ans-constraints) ans-type)))
+
   (define (answer->constraints ans)
     (cases answer ans
       (an-answer (ans-type ans-constraints) ans-constraints)))
-
-  (define (unify equalities subst)
-    (if (null? equalities)
-      subst
-      (let* ((cur-eq (car equalities))
-             (cur-eq-left (eq->left cur-eq))
-             (cur-eq-right (eq->right cur-eq)))
-        (cases type cur-eq-left
-          (var-type (id1)
-            (cases type cur-eq-right
-              (int-type ()
-                (unify (cdr equalities) (extend-subst id1 (int-type) subst)))
-              (else
-                (if (equal? cur-eq-left cur-eq-right)
-                  (unify (cdr equalities) subst)
-                  (eopl:error 'infer "Unification of equality ~s failed with substitution ~s" cur-eq subst)))))
-          (int-type ()
-            (cases type cur-eq-right
-              (var-type (id1)
-                (unify (cdr equalities) (extend-subst id1 (int-type) subst)))
-              (else
-                (if (equal? cur-eq-left cur-eq-right)
-                  (unify (cdr equalities) subst)
-                  (eopl:error 'infer "Unification of equality ~s failed with substitution ~s" cur-eq subst)))))
-          (else
-            (if (equal? cur-eq-left cur-eq-right)
-              (unify (cdr equalities) subst)
-              (eopl:error 'infer "Unification of equality ~s failed with substitution ~s" cur-eq subst)))))))
-
-  (define (subst-in-type subst stype)
-    (cases type stype
-      (int-type ()
-        (int-type))
-      (bool-type ()
-        (bool-type))
-      (arrow-type (left right)
-        (arrow-type (subst-in-type subst left) (subst-in-type subst right)))
-      (var-type (id)
-        (apply-subst subst id))
-      (else eopl:error 'subst-in-type "Unhandled type ~s" stype)))
 
   (define (infer/pgm pgm)
     (cases program pgm

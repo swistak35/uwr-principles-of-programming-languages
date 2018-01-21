@@ -71,4 +71,40 @@
       (runner-d
         (an-equality (int-type) (bool-type))))
 
+    (test-equal?
+      "var and arrow(int, int)"
+      (runner
+        (an-equality (var-type 1) (arrow-type (int-type) (int-type))))
+      `((1 ,(arrow-type (int-type) (int-type)))))
+
+    (test-equal?
+      "arrow(int, int) and var"
+      (runner
+        (an-equality (arrow-type (int-type) (int-type)) (var-type 1)))
+      `((1 ,(arrow-type (int-type) (int-type)))))
+
+    (test-exn
+      "bool and arrow(int, int)"
+      #rx"Unification"
+      (runner-d
+        (an-equality (bool-type) (arrow-type (int-type) (int-type)))))
+
+    (test-exn
+      "int and arrow(int, int)"
+      #rx"Unification"
+      (runner-d
+        (an-equality (int-type) (arrow-type (int-type) (int-type)))))
+
+    (test-exn
+      "arrow(int, int) and bool"
+      #rx"Unification"
+      (runner-d
+        (an-equality (arrow-type (int-type) (int-type)) (bool-type))))
+
+    (test-exn
+      "arrow(int, int) and int"
+      #rx"Unification"
+      (runner-d
+        (an-equality (arrow-type (int-type) (int-type)) (int-type))))
+
   ))
