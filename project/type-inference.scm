@@ -107,6 +107,20 @@
           (apply-aset aset var)
           '()))
 
+      (call-exp (rator rand)
+        (let ((rator-answer (infer-exp rator aset))
+              (rand-answer (infer-exp rand aset))
+              (result-typevar (get-fresh-typevar)))
+          (an-answer
+            result-typevar
+            (append
+              (list
+                (an-equality
+                  (answer->type rator-answer)
+                  (arrow-type (answer->type rand-answer) result-typevar)))
+              (answer->constraints rator-answer)
+              (answer->constraints rand-answer)))))
+
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
       ))
 

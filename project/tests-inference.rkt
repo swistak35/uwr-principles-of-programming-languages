@@ -77,4 +77,14 @@
       (runner "proc(y) 42")
       (arrow-type (var-type 1) (int-type)))
 
+    (test-equal?
+      "simple call"
+      (runner "(proc(y) -(42,y) 20)")
+      (int-type))
+
+    (test-exn
+      "call with wrong argument"
+      #rx"Substitution"
+      (runner-d "(proc(y) -(42,y) zero?(42))"))
+
     ))

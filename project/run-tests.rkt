@@ -14,6 +14,7 @@
       inference-tests
       prettyprinter-tests
       unification-tests
-      interp-tests)))
+      interp-tests
+      )))
 
 (run-tests full-spec 'normal)

@@ -11,14 +11,25 @@
     (stype type?)
     (saved-subst substitution?)))
 
-(define (apply-subst subst search-id)
+(define (extend-subst! varid stype saved-subst)
+  (let ((search-result (find-subst saved-subst varid)))
+    (if (and search-result (not (equal? search-result stype)))
+      (eopl:error 'extend-subst! "Substitution ~s to ~s can't be added because already present ~s" varid stype search-result)
+      (extend-subst varid stype saved-subst))))
+
+(define (find-subst subst search-id)
   (cases substitution subst
-    (empty-subst ()
-      (var-type search-id))
+    (empty-subst () #f)
     (extend-subst (id stype saved-subst)
       (if (eqv? id search-id)
         stype
-        (apply-subst saved-subst search-id)))))
+        (find-subst saved-subst search-id)))))
+
+(define (apply-subst subst search-id)
+  (let ((search-result (find-subst subst search-id)))
+    (if search-result
+      search-result
+      (var-type search-id))))
 
 (define-datatype equality equality?
   (an-equality
@@ -34,16 +45,16 @@
     (an-equality (eq-left eq-right) eq-right)))
 
 (define (unify/var-int equalities saved-subst id)
-  (unify equalities (extend-subst id (int-type) saved-subst)))
+  (unify equalities (extend-subst! id (int-type) saved-subst)))
 
 (define (unify/var-bool equalities saved-subst id)
-  (unify equalities (extend-subst id (bool-type) saved-subst)))
+  (unify equalities (extend-subst! id (bool-type) saved-subst)))
 
 (define (unify/var-var equalities saved-subst id1 id2)
-  (unify equalities (extend-subst id1 (var-type id2) saved-subst)))
+  (unify equalities (extend-subst! id1 (var-type id2) saved-subst)))
 
 (define (unify/var-arrow equalities saved-subst id arrow)
-  (unify equalities (extend-subst id arrow saved-subst)))
+  (unify equalities (extend-subst! id arrow saved-subst)))
 
 (define (unify/arrow-arrow equalities saved-subst left1 right1 left2 right2)
   (unify
@@ -108,3 +119,5 @@
       (apply-subst subst id))
     (else eopl:error 'subst-in-type "Unhandled type ~s" stype)))
 
+; (require trace)
+; (trace unify)
