@@ -8,13 +8,18 @@
   (require (only-in racket/string
                     string-join))
 
-  (provide pretty-print)
+  (provide pretty-print pretty-print/pgm)
 
   (define (print-indent n)
     (make-string n #\space))
 
   ; (define (pretty-print exp)
   ;   (pretty-print-aux exp 0))
+
+  (define (pretty-print/pgm pgm)
+    (cases program pgm
+      (a-program (exp1)
+        (pretty-print exp1))))
 
   (define pretty-print
     (lambda (exp)
@@ -50,24 +55,23 @@
         (proc-exp (var body)
           (format "proc(~a) ~a" (symbol->string var) (pretty-print body)))
 
-        (call-exp (rator rands)
+        (call-exp (rator rand)
           (format
-            "(~a)"
-            (string-join
-              (map pretty-print (cons rator rands))
-              " ")))
+            "(~a ~a)"
+            (pretty-print rator)
+            (pretty-print rand)))
 
         (letrec-exp (p-names b-vars p-bodies letrec-body)
           (string-join
             (list
               (format "letrec ~a(~a) = ~a"
                 (symbol->string (car p-names))
-                (string-join (map symbol->string (car b-vars)) ", ")
+                (symbol->string (car b-vars))
                 (pretty-print (car p-bodies)))
               (string-join
                 (map
-                  (lambda (p-name b-vars p-body)
-                    (format "       ~a(~a) = ~a" p-name (string-join (map symbol->string b-vars) ", ") (pretty-print p-body)))
+                  (lambda (p-name b-var p-body)
+                    (format "       ~a(~a) = ~a" p-name b-var (pretty-print p-body)))
                   (cdr p-names) (cdr b-vars) (cdr p-bodies))
                 "\n")
               (format "in ~a" (pretty-print letrec-body)))
