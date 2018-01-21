@@ -11,7 +11,7 @@
   (provide (all-defined-out))
 
   (define-datatype type type?
-    (nat-type)
+    (int-type)
     (bool-type)
     (list-type
       (elem type?))
@@ -64,7 +64,7 @@
     (cases expression exp
       (const-exp (num)
         (an-answer
-          (nat-type)
+          (int-type)
           '()))
 
       (zero?-exp (exp1)
@@ -72,9 +72,22 @@
           (an-answer
             (bool-type)
             (cons
-              (an-equality (nat-type) (answer->type exp1-answer))
+              (an-equality (int-type) (answer->type exp1-answer))
               (answer->constraints exp1-answer)))))
 
+      (if-exp (exp1 exp2 exp3)
+        (let ((exp1-answer (infer-exp exp1))
+              (exp2-answer (infer-exp exp2))
+              (exp3-answer (infer-exp exp3)))
+          (an-answer
+            (answer->type exp2-answer)
+            (append
+              (list
+                (an-equality (bool-type) (answer->type exp1-answer))
+                (an-equality (answer->type exp2-answer) (answer->type exp3-answer)))
+              (answer->constraints exp1-answer)
+              (answer->constraints exp2-answer)
+              (answer->constraints exp3-answer)))))
       ; (var-exp ())
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
       ))
