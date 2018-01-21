@@ -49,6 +49,16 @@
   (cases equality eq
     (an-equality (eq-left eq-right) eq-right)))
 
+(define (unify/var-int equalities saved-subst id)
+  (unify equalities (extend-subst id (int-type) saved-subst)))
+
+(define (unify/var-bool equalities saved-subst id)
+  (unify equalities (extend-subst id (bool-type) saved-subst)))
+
+(define (unify/simple equalities saved-subst left right)
+  (if (equal? left right)
+    (unify equalities saved-subst)
+    (eopl:error 'infer "Unification of ~s with ~s failed with substitution ~s" left right saved-subst)))
 
 (define (unify equalities subst)
   (if (null? equalities)
@@ -60,23 +70,21 @@
         (var-type (id1)
           (cases type cur-eq-right
             (int-type ()
-              (unify (cdr equalities) (extend-subst id1 (int-type) subst)))
-            (else
-              (if (equal? cur-eq-left cur-eq-right)
-                (unify (cdr equalities) subst)
-                (eopl:error 'infer "Unification of equality ~s failed with substitution ~s" cur-eq subst)))))
+              (unify/var-int (cdr equalities) subst id1))
+            (bool-type ()
+              (unify/var-bool (cdr equalities) subst id1))
+            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (int-type ()
           (cases type cur-eq-right
             (var-type (id1)
-              (unify (cdr equalities) (extend-subst id1 (int-type) subst)))
-            (else
-              (if (equal? cur-eq-left cur-eq-right)
-                (unify (cdr equalities) subst)
-                (eopl:error 'infer "Unification of equality ~s failed with substitution ~s" cur-eq subst)))))
-        (else
-          (if (equal? cur-eq-left cur-eq-right)
-            (unify (cdr equalities) subst)
-            (eopl:error 'infer "Unification of equality ~s failed with substitution ~s" cur-eq subst)))))))
+              (unify/var-int (cdr equalities) subst id1))
+            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
+        (bool-type ()
+          (cases type cur-eq-right
+            (var-type (id1)
+              (unify/var-bool (cdr equalities) subst id1))
+            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
+        (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))))
 
 (define (subst-in-type subst stype)
   (cases type stype
