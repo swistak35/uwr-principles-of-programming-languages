@@ -39,8 +39,20 @@
 (define (unify/var-bool equalities saved-subst id)
   (unify equalities (extend-subst id (bool-type) saved-subst)))
 
+(define (unify/var-var equalities saved-subst id1 id2)
+  (unify equalities (extend-subst id1 (var-type id2) saved-subst)))
+
 (define (unify/var-arrow equalities saved-subst id arrow)
   (unify equalities (extend-subst id arrow saved-subst)))
+
+(define (unify/arrow-arrow equalities saved-subst left1 right1 left2 right2)
+  (unify
+    (append
+      (list
+        (an-equality left1 left2)
+        (an-equality right1 right2))
+      equalities)
+    saved-subst))
 
 (define (unify/simple equalities saved-subst left right)
   (if (equal? left right)
@@ -60,6 +72,8 @@
               (unify/var-int (cdr equalities) subst id1))
             (bool-type ()
               (unify/var-bool (cdr equalities) subst id1))
+            (var-type (id2)
+              (unify/var-var (cdr equalities) subst id1 id2))
             (arrow-type (left right)
               (unify/var-arrow (cdr equalities) subst id1 cur-eq-right))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
@@ -77,6 +91,8 @@
           (cases type cur-eq-right
             (var-type (id1)
               (unify/var-arrow (cdr equalities) subst id1 cur-eq-left))
+            (arrow-type (left2 right2)
+              (unify/arrow-arrow (cdr equalities) subst left right left2 right2))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))))
 
