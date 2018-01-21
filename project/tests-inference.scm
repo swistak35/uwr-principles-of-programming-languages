@@ -31,6 +31,24 @@
         ,(if-exp (zero?-exp (const-exp 42)) (zero?-exp (const-exp 42)) (const-exp 42))
         error)
 
+      (diff-1
+        ,(diff-exp (const-exp 42) (const-exp 22))
+        ,(int-type))
+
+      (diff-2
+        ,(diff-exp (zero?-exp (const-exp 42)) (const-exp 22))
+        error)
+
+      (diff-2
+        ,(diff-exp (const-exp 42) (zero?-exp (const-exp 22)))
+        error)
+
+      (proc-1
+        ,(proc-exp 'y (diff-exp (const-exp 42) (var-exp 'y)))
+        ,(arrow-type (int-type) (int-type)))
+      ; (call-1
+      ;   ,(call-exp (proc-exp 'y )))
+
 
       )
     )
