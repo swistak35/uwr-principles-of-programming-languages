@@ -27,7 +27,7 @@
         ,(if-exp (const-exp 42) (const-exp 42) (const-exp 42))
         error)
 
-      (if-2-results-must-be-the-same
+      (if-3-results-must-be-the-same
         ,(if-exp (zero?-exp (const-exp 42)) (zero?-exp (const-exp 42)) (const-exp 42))
         error)
 
@@ -46,8 +46,18 @@
       (proc-1
         ,(proc-exp 'y (diff-exp (const-exp 42) (var-exp 'y)))
         ,(arrow-type (int-type) (int-type)))
-      ; (call-1
-      ;   ,(call-exp (proc-exp 'y )))
+
+      (proc-2
+        ,(proc-exp 'y (zero?-exp (var-exp 'y)))
+        ,(arrow-type (int-type) (bool-type)))
+
+      (proc-3
+        ,(proc-exp 'y (zero?-exp (const-exp 42)))
+        ,(arrow-type (var-type 1) (bool-type)))
+
+      (call-1
+        ,(call-exp (proc-exp 'y (diff-exp (const-exp 42) (var-exp 'y))) (list (const-exp 20)))
+        ,(int-type))
 
 
       )

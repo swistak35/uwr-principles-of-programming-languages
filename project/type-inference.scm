@@ -170,6 +170,7 @@
                 (an-equality (int-type) (answer->type exp2-answer)))
               (answer->constraints exp1-answer)
               (answer->constraints exp2-answer)))))
+
       (proc-exp (bvar body)
         (let* ((arg-type (get-fresh-typevar))
                (body-answer (infer-exp body (extend-aset bvar arg-type aset))))
@@ -181,7 +182,7 @@
         (an-answer
           (apply-aset aset var)
           '()))
-      ; (var-exp ())
+
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
       ))
 

@@ -69,12 +69,12 @@
               (extend-env var val1 env))))
         
         (proc-exp (var body)
-          (proc-val (procedure (list var) body env)))
+          (proc-val (procedure var body env)))
 
-        (call-exp (rator rands)
+        (call-exp (rator rand)
           (let ((proc (expval->proc (value-of rator env)))
-                (args (map (lambda (rand) (value-of rand env)) rands)))
-            (apply-procedure proc args)))
+                (arg (value-of rand env)))
+            (apply-procedure proc arg)))
 
         (letrec-exp (p-names b-vars p-bodies letrec-body)
           (value-of letrec-body
@@ -135,24 +135,11 @@
 
   ;; instrumented version
   (define apply-procedure
-    (lambda (proc1 args)
+    (lambda (proc1 arg)
       (cases proc proc1
-        (procedure (vars body saved-env)
-          (let ((new-env (foldl
-                           (lambda (var arg res-env) (extend-env var arg res-env))
-                           saved-env
-                           vars
-                           args)))
-              ; (when (instrument-let)
-              ;   (begin
-              ;     (eopl:printf
-              ;       "entering body of proc ~s with env =~%"
-              ;       var)
-              ;     (pretty-print (env->list new-env))
-              ;     (eopl:printf "store =~%")
-              ;     (pretty-print (store->readable (get-store-as-list)))
-              ;     (eopl:printf "~%")))
-              (value-of body new-env))))))
+        (procedure (var body saved-env)
+          (let ((new-env (extend-env var arg saved-env)))
+            (value-of body new-env))))))
 
 
   ;; store->readable : Listof(List(Ref,Expval)) 
