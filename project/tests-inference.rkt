@@ -2,6 +2,7 @@
 
 (require rackunit)
 (require "lang.scm")
+(require "type-data-structures.rkt")
 (require "type-inference.scm")
 
 (provide inference-tests)

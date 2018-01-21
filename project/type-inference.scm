@@ -7,19 +7,9 @@
   ;                   format))
   ; (require (only-in racket/string
   ;                   string-join))
+  (require "type-data-structures.rkt")
   
   (provide (all-defined-out))
-
-  (define-datatype type type?
-    (int-type)
-    (bool-type)
-    (list-type
-      (elem type?))
-    (arrow-type
-      (left type?)
-      (right type?))
-    (var-type
-      (id integer?)))
 
   (define typevar-counter 'uninitialized)
   (define (initialize-typevar-counter!)
