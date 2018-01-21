@@ -8,6 +8,7 @@
   ; (require (only-in racket/string
   ;                   string-join))
   (require "type-data-structures.rkt")
+  (require "unification.rkt")
   
   (provide (all-defined-out))
 
@@ -19,36 +20,6 @@
     typevar-counter)
   (define (get-fresh-typevar)
     (var-type (get-fresh-typevar-id)))
-
-  (define-datatype assumption-set assumption-set?
-    (empty-aset)
-    (extend-aset 
-      (bvar symbol?)
-      (btype type?)
-      (saved-aset assumption-set?)))
-  (define (apply-aset aset var)
-    (cases assumption-set aset
-      (empty-aset ()
-        (eopl:error 'apply-aset "No binding for ~s" var))
-      (extend-aset (bvar btype saved-aset)
-        (if (eqv? var bvar)
-          btype
-          (apply-aset saved-aset var)))))
-
-  (define-datatype substitution substitution?
-    (empty-subst)
-    (extend-subst 
-      (varid integer?)
-      (stype type?)
-      (saved-subst substitution?)))
-  (define (apply-subst subst search-id)
-    (cases substitution subst
-      (empty-subst ()
-        (var-type search-id))
-      (extend-subst (id stype saved-subst)
-        (if (eqv? id search-id)
-          stype
-          (apply-subst saved-subst search-id)))))
 
   (define-datatype equality equality?
     (an-equality
