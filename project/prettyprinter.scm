@@ -87,9 +87,6 @@
               "end")
             "\n"))
 
-        (deref-exp (exp1)
-          (format "deref(~a)" (pretty-print exp1)))
-
         (setref-exp (exp1 exp2)
           (format "setref(~a, ~a)" (pretty-print exp1) (pretty-print exp2)))
 

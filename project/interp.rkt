@@ -10,14 +10,18 @@
 
 (provide value-of-program value-of instrument-newref)
 
+;;; Initial environment when running a program
+
 (define primitives-names
-  '(diff zero? newref))
+  '(diff zero? newref deref))
 
 (define (initial-env)
   (foldl
     (lambda (p res) (extend-env p (proc-val (primitive p)) res))
     (empty-env)
     primitives-names))
+
+;; Main interpreter
 
 (define value-of-program 
   (lambda (pgm)
@@ -67,11 +71,6 @@
                     (value-of-begins (car es) (cdr es)))))))
           (value-of-begins exp1 exps)))
 
-      (deref-exp (exp1)
-        (let ((v1 (value-of exp1 env)))
-          (let ((ref1 (expval->ref v1)))
-            (deref ref1))))
-
       (setref-exp (exp1 exp2)
         (let ((ref (expval->ref (value-of exp1 env))))
           (let ((v2 (value-of exp2 env)))
@@ -106,6 +105,8 @@
 
       )))
 
+;;; Calling procedures and primitives
+
 (define apply-procedure
   (lambda (proc1 args)
     (cases proc proc1
@@ -124,6 +125,7 @@
     ((eq? name 'diff) (primitive-diff args))
     ((eq? name 'zero?) (primitive-zero? args))
     ((eq? name 'newref) (primitive-newref args))
+    ((eq? name 'deref) (primitive-deref args))
     (else (eopl:error 'apply-primitive "Unknown primitive ~s" name))))
 
 (define (primitive-diff args)
@@ -136,19 +138,16 @@
   (bool-val (zero? (expval->num (car args)))))
 
 (define (primitive-newref args)
-  (check-args 1 args 'zero?)
+  (check-args 1 args 'newref)
   (ref-val (newref (car args))))
+
+(define (primitive-deref args)
+  (check-args 1 args 'deref)
+  (deref (expval->ref (car args))))
+
+;;; Small helper functions
 
 (define (check-args expected-num args name)
   (let ((actual-num (length args)))
     (when (not (equal? expected-num actual-num))
       (eopl:error 'wrong-args "Wrong number of arguments to ~s, given ~s expected ~s" name actual-num expected-num))))
-
-(define store->readable
-  (lambda (l)
-    (map
-      (lambda (p)
-        (cons
-          (car p)
-          (expval->printable (cadr p))))
-      l)))

@@ -50,10 +50,6 @@
         begin-exp)
 
       (expression
-        ("deref" "(" expression ")")
-        deref-exp)
-
-      (expression
         ("setref" "(" expression "," expression ")")
         setref-exp)
 
