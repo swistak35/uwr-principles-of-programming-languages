@@ -133,16 +133,28 @@
 
   (define (apply-primitive name args)
     (cond
-      ((eq? name 'diff)
-       (num-val (- (expval->num (car args)) (expval->num (cadr args)))))
-
-      ((eq? name 'zero?)
-       (bool-val (zero? (expval->num (car args)))))
-
-      ((eq? name 'newref)
-       (ref-val (newref (car args))))
-
+      ((eq? name 'diff) (primitive-diff args))
+      ((eq? name 'zero?) (primitive-zero? args))
+      ((eq? name 'newref) (primitive-newref args))
       (else (eopl:error 'apply-primitive "Unknown primitive ~s" name))))
+
+  (define (primitive-diff args)
+    (check-args 2 args 'diff)
+    (num-val
+      (- (expval->num (car args)) (expval->num (cadr args)))))
+  
+  (define (primitive-zero? args)
+    (check-args 1 args 'zero?)
+    (bool-val (zero? (expval->num (car args)))))
+
+  (define (primitive-newref args)
+    (check-args 1 args 'zero?)
+    (ref-val (newref (car args))))
+
+  (define (check-args expected-num args name)
+    (let ((actual-num (length args)))
+      (when (not (equal? expected-num actual-num))
+        (eopl:error 'wrong-args "Wrong number of arguments to ~s, given ~s expected ~s" name actual-num expected-num))))
 
   (define store->readable
     (lambda (l)

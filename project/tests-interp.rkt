@@ -50,6 +50,21 @@
       (runner "(diff 55 (diff 22 11))")
       44)
 
+    (test-exn
+      "primitive call with too many args"
+      #rx"Wrong number of arguments to diff, given 3 expected 2"
+      (runner-d "(diff 1 2 3)"))
+
+    (test-exn
+      "primitive call with too little args"
+      #rx"Wrong number of arguments to diff, given 1 expected 2"
+      (runner-d "(diff 1)"))
+
+    (test-exn
+      "primitive call with no args"
+      #rx"Wrong number of arguments to diff, given 0 expected 2"
+      (runner-d "(diff)"))
+
     (test-equal?
       "test-var-1"
       (runner "x")
