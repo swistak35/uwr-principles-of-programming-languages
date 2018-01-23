@@ -78,6 +78,55 @@
       (runner "proc(y) 42")
       "'1 -> int")
 
+    ;;; Primitives
+
+    (test-equal?
+      "primitive diff"
+      (runner "diff")
+      "int * int -> int")
+
+    (test-equal?
+      "primitive zero?"
+      (runner "zero?")
+      "int -> bool")
+
+    ; (test-equal?
+    ;   "primitive newref"
+    ;   (runner "newref")
+    ;   "'1 -> '1 ref")
+
+    ; (test-equal?
+    ;   "primitive deref"
+    ;   (runner "deref")
+    ;   "'1 ref -> '1")
+
+    ; (test-equal?
+    ;   "primitive setref"
+    ;   (runner "setref")
+    ;   "'1 ref * '1 -> int")
+
+    ; (test-equal?
+    ;   "primitive cons"
+    ;   (runner "cons")
+    ;   "'1 * '1 list -> '1 list")
+
+    ; (test-equal?
+    ;   "primitive car"
+    ;   (runner "car")
+    ;   "'1 list -> '1")
+
+    ; (test-equal?
+    ;   "primitive cdr"
+    ;   (runner "cdr")
+    ;   "'1 list -> '1 list")
+
+    ; (test-equal?
+    ;   "primitive null?"
+    ;   (runner "null?")
+    ;   "'1 list -> bool")
+
+    ;;; Calls
+
     (test-equal?
       "simple call"
       (runner "(proc(y) (diff 42 y) 20)")
