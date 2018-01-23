@@ -155,6 +155,11 @@
       (runner "(proc(x) (diff x 1)  30)")
       29)
 
+    (test-exn
+      "check number of arguments in custom procs"
+      #rx"Wrong number of arguments"
+      (runner-d "letrec foo(x,y) = 42 in (foo 7)"))
+
     (test-equal?
       "apply-simple-proc"
       (runner "let f = proc (x) (diff x 1) in (f 30)")

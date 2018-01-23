@@ -110,6 +110,7 @@
   (lambda (proc1 args)
     (cases proc proc1
       (procedure (vars body saved-env)
+        (check-args (length vars) args 'procedure)
         (let ((new-env (foldl
                           (lambda (var arg res-env) (extend-env var arg res-env))
                           saved-env
