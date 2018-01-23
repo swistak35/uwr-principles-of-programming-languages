@@ -12,6 +12,8 @@
     (right type?))
   (var-type
     (id integer?))
+  (ref-type
+    (elem type?))
   (tuple-type
     (types (list-of type?)))
   )
