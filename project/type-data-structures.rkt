@@ -11,7 +11,10 @@
     (left type?)
     (right type?))
   (var-type
-    (id integer?)))
+    (id integer?))
+  (tuple-type
+    (types (list-of type?)))
+  )
 
 (define typevar-counter 'uninitialized)
 (define (initialize-typevar-counter!)

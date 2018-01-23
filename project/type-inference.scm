@@ -3,10 +3,8 @@
   ; (require "data-structures.scm")
   ; (require "drscheme-init.scm")
   (require "lang.scm")
-  ; (require (only-in racket/base
-  ;                   format))
-  ; (require (only-in racket/string
-  ;                   string-join))
+  (require (only-in racket/base
+                    foldl))
   (require "type-data-structures.rkt")
   (require "unification.rkt")
   
@@ -74,6 +72,30 @@
         return-type
         (merge-subst exp-subst unify-subst))))
 
+  ; Assumption: arg-types and return-type are concrete
+  (define (handle-call arg-types return-type args aset)
+    ; There should be an error if lengths of arg-types and args are not equal
+    (let* ((fun-type (arrow-type (tuple-type arg-types) return-type))
+           (arg-result (foldl
+                         (lambda (arg-type arg result)
+                           (let* ((current-subst (car result))
+                                  (current-aset (cadr result))
+                                  (substituted-aset (subst-in-aset current-subst current-aset))
+                                  (arg-answer (infer-exp arg substituted-aset))
+                                  (next-subst
+                                    (merge-subst
+                                      (merge-subst current-subst (answer->subst arg-answer))
+                                      (unify/one arg-type (answer->type arg-answer))))
+                                  (next-aset (subst-in-aset next-subst current-aset)))
+                             (list next-subst next-aset)))
+                         (list (empty-subst) aset)
+                         arg-types
+                         args))
+           (result-subst (car arg-result)))
+      (an-answer
+        (subst-in-type result-subst return-type)
+        result-subst)))
+
   (define (infer-exp exp aset)
     (cases expression exp
       (const-exp (num)
@@ -106,13 +128,11 @@
             final-subst)))
 
       (diff-exp (exp1 exp2)
-        (let* ((exp1-answer (infer-exp exp1 aset))
-               (exp2-aset-subst (merge-subst (answer->subst exp1-answer) (unify/one (int-type) (answer->type exp1-answer))))
-               (exp2-answer (infer-exp exp2 (subst-in-aset exp2-aset-subst aset)))
-               (final-subst (merge-subst (merge-subst exp2-aset-subst (answer->subst exp2-answer)) (unify/one (int-type) (answer->type exp2-answer)))))
-          (an-answer
-            (int-type)
-            final-subst)))
+        (handle-call
+          (list (int-type) (int-type))
+          (int-type)
+          (list exp1 exp2)
+          aset))
 
       (proc-exp (bvar body)
         (let* ((arg-type (get-fresh-typevar))
