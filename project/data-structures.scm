@@ -4,6 +4,8 @@
                     expression?))
   (require (only-in "store.scm"
                     reference?))
+  (require (only-in racket/base
+                    format))
 
   (provide (all-defined-out))
 
@@ -56,7 +58,9 @@
     (procedure
       (bvars (list-of symbol?))
       (body expression?)
-      (env environment?)))
+      (env environment?))
+    (primitive
+      (name symbol?)))
 
 ;;;;;;;;;;;;;;;; environments ;;;;;;;;;;;;;;;;
   
@@ -89,7 +93,9 @@
       (proc-val (p)
         (cases proc p
           (procedure (var body saved-env)
-            (list 'procedure var '... (env->list saved-env)))))
+            (list 'procedure var '... (env->list saved-env)))
+          (primitive (name)
+            (format "<primitive: ~s>" name))))
       (else val)))
 
   )

@@ -23,6 +23,13 @@
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
+  (define (initial-env)
+    (extend-env
+      'diff (proc-val (primitive 'diff))
+      (extend-env
+        'zero? (proc-val (primitive 'zero?))
+        (init-env))))
+
   ;; value-of-program : Program -> ExpVal
   ;; Page: 110
   (define value-of-program 
@@ -30,7 +37,7 @@
       (initialize-store!)               ; new for explicit refs.
       (cases program pgm
         (a-program (exp1)
-          (value-of exp1 (init-env))))))
+          (value-of exp1 (initial-env))))))
 
   ;; value-of : Exp * Env -> ExpVal
   ;; Page: 113
@@ -141,8 +148,19 @@
                            (lambda (var arg res-env) (extend-env var arg res-env))
                            saved-env
                            vars args)))
-            (value-of body new-env))))))
+            (value-of body new-env)))
+        (primitive (name)
+          (apply-primitive name args)))))
 
+  (define (apply-primitive name args)
+    (cond
+      ((eq? name 'diff)
+       (num-val (- (expval->num (car args)) (expval->num (cadr args)))))
+
+      ((eq? name 'zero?)
+       (zero? (expval->num (car args))))
+
+      (else (eopl:error 'apply-primitive "Unknown primitive ~s" name))))
 
   (define store->readable
     (lambda (l)

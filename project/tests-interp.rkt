@@ -23,7 +23,7 @@
 
 (define interp-tests
   (test-suite
-    "Pretty printer"
+    "Interpreter"
 
     (test-equal?
       "Positive constant"
@@ -37,17 +37,17 @@
 
     (test-equal?
       "simple-arith-1"
-      (runner "-(44,33)")
+      (runner "(diff 44 33)")
       11)
 
     (test-equal?
       "nested-arith-left"
-      (runner "-(-(44,33),22)")
+      (runner "(diff (diff 44 33) 22)")
       -11)
 
     (test-equal?
       "nested-arith-right"
-      (runner "-(55, -(22,11))")
+      (runner "(diff 55 (diff 22 11))")
       44)
 
     (test-equal?
