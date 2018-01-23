@@ -50,10 +50,6 @@
         begin-exp)
 
       (expression
-        ("setref" "(" expression "," expression ")")
-        setref-exp)
-
-      (expression
         ("[" (separated-list expression ",") "]")
         list-exp)
 

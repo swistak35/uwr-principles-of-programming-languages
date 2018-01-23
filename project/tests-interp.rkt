@@ -230,19 +230,24 @@
 
     (test-exn
       "deref checks number of args"
-      #rx"Wrong number of arguments to deref"
+      #rx"Wrong number of arguments to deref, given 0 expected 1"
       (runner-d "(deref)"))
 
     (test-exn
       "newref checks number of args"
-      #rx"Wrong number of arguments to newref"
+      #rx"Wrong number of arguments to newref, given 0 expected 1"
       (runner-d "(newref)"))
+
+    (test-exn
+      "setref checks number of args"
+      #rx"Wrong number of arguments to setref, given 0 expected 2"
+      (runner-d "(setref)"))
 
     (test-equal?
       "gensym-test-1"
       (runner "
               let g = let counter = (newref 0) 
-              in proc (dummy) let d = setref(counter, (diff (deref counter) -1))
+              in proc (dummy) let d = (setref counter (diff (deref counter) -1))
               in (deref counter)
               in (diff (g 11) (g 22))")
       -1)
@@ -255,7 +260,7 @@
     (test-equal?
       "assignment-test-1"
       (runner "let x = (newref 17) 
-              in begin setref(x,27); (deref x) end")
+              in begin (setref x 27); (deref x) end")
       27)
 
     (test-equal?
@@ -264,7 +269,7 @@
               let g = let counter = (newref 0) 
               in proc (dummy)
               begin
-              setref(counter, (diff (deref counter) -1));
+              (setref counter (diff (deref counter) -1));
               (deref counter)
               end
               in (diff (g 11) (g 22))")
@@ -276,13 +281,13 @@
               let x = (newref 0)
               in letrec even(d) = if (zero? (deref x)) 
               then 1
-              else let d = setref(x, (diff (deref x) 1))
+              else let d = (setref x (diff (deref x) 1))
               in (odd d)
               odd(d)  = if (zero? (deref x)) 
               then 0
-              else let d = setref(x, (diff (deref x) 1))
+              else let d = (setref x (diff (deref x) 1))
               in (even d)
-              in let d = setref(x,13)
+              in let d = (setref x 13)
               in (odd -100)")
       1)
 
@@ -301,7 +306,7 @@
       (runner "
               let x = (newref (newref 0))
               in begin 
-              setref((deref x), 11);
+              (setref (deref x) 11);
               (deref (deref x))
               end")
       11)

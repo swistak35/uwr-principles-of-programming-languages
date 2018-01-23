@@ -87,9 +87,6 @@
               "end")
             "\n"))
 
-        (setref-exp (exp1 exp2)
-          (format "setref(~a, ~a)" (pretty-print exp1) (pretty-print exp2)))
-
         (list-exp (exps)
           (format
             "[~a]"

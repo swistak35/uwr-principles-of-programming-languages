@@ -74,11 +74,6 @@ in (foo (bar 17))")
 end")
 
     (test-equal?
-      "setref"
-      (runner "setref(y, 42)")
-      "setref(y, 42)")
-
-    (test-equal?
       "empty list"
       (runner "[]")
       "[]")
