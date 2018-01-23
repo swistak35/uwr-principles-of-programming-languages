@@ -103,9 +103,4 @@ end")
       (runner "null?([42, 17])")
       "null?([42, 17])")
 
-    (test-equal?
-      "cons"
-      (runner "cons(63, [42, 17])")
-      "cons(63, [42, 17])")
-
     ))

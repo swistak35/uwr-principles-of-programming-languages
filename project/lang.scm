@@ -54,10 +54,6 @@
         list-exp)
 
       (expression
-        ("cons" "(" expression "," expression ")")
-        cons-exp)
-
-      (expression
         ("car" "(" expression ")")
         car-exp)
 

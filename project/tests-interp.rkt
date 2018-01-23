@@ -243,6 +243,11 @@
       #rx"Wrong number of arguments to setref, given 0 expected 2"
       (runner-d "(setref)"))
 
+    (test-exn
+      "cons checks number of args"
+      #rx"Wrong number of arguments to cons, given 0 expected 2"
+      (runner-d "(cons)"))
+
     (test-equal?
       "gensym-test-1"
       (runner "
@@ -323,17 +328,17 @@
 
     (test-equal?
       "cons-1"
-      (runner "cons(42, [])")
+      (runner "(cons 42 [])")
       '(42))
 
     (test-equal?
       "cons-2"
-      (runner "cons(42, cons(17, []))")
+      (runner "(cons 42 (cons 17 []))")
       '(42 17))
 
     (test-equal?
       "car-1"
-      (runner "car(cons(42, cons(17, [])))")
+      (runner "car((cons 42 (cons 17 [])))")
       42)
 
     (test-equal?
@@ -383,7 +388,7 @@
       "map-1"
       (runner "
               letrec map(f) =
-              letrec map2(xs) = if null?(xs) then [] else cons((f car(xs)), ((map f) cdr(xs)))
+              letrec map2(xs) = if null?(xs) then [] else (cons (f car(xs)) ((map f) cdr(xs)))
               in map2
               increment(n) = (diff n -1)
               in ((map increment) [-1,0,1,2])")
@@ -396,7 +401,7 @@
               letrec filter2(xs) = if null?(xs)
               then []
               else if (f car(xs))
-              then cons(car(xs), ((filter f) cdr(xs)))
+              then (cons car(xs) ((filter f) cdr(xs)))
               else ((filter f) cdr(xs))
               in filter2
               iszero(n) = (zero? n)
@@ -406,7 +411,7 @@
     (test-equal?
       "map-multiarg-1"
       (runner "
-              letrec map(f, xs) = if null?(xs) then [] else cons((f car(xs)), (map f cdr(xs)))
+              letrec map(f, xs) = if null?(xs) then [] else (cons (f car(xs)) (map f cdr(xs)))
                      increment(n) = (diff n -1)
               in (map increment [-1,0,1,2])")
               '(0 1 2 3))

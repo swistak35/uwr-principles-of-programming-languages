@@ -13,7 +13,7 @@
 ;;; Initial environment when running a program
 
 (define primitives-names
-  '(diff zero? newref deref setref))
+  '(diff zero? newref deref setref cons))
 
 (define (initial-env)
   (foldl
@@ -71,12 +71,6 @@
                     (value-of-begins (car es) (cdr es)))))))
           (value-of-begins exp1 exps)))
 
-      (cons-exp (car-exp cdr-exp)
-        (let* ((val-car (value-of car-exp env))
-                (val-cdr (value-of cdr-exp env))
-                (val-cdr-list (expval->list val-cdr)))
-          (list-val (cons val-car val-cdr-list))))
-
       (car-exp (exp1)
         (let* ((val-exp1 (value-of exp1 env))
                 (lst1 (expval->list val-exp1)))
@@ -120,6 +114,7 @@
     ((eq? name 'newref) (primitive-newref args))
     ((eq? name 'deref) (primitive-deref args))
     ((eq? name 'setref) (primitive-setref args))
+    ((eq? name 'cons) (primitive-cons args))
     (else (eopl:error 'apply-primitive "Unknown primitive ~s" name))))
 
 (define (primitive-diff args)
@@ -144,6 +139,10 @@
   (begin
     (setref! (expval->ref (car args)) (cadr args))
     (num-val 23)))
+
+(define (primitive-cons args)
+  (check-args 2 args 'cons)
+  (list-val (cons (car args) (expval->list (cadr args)))))
 
 ;;; Small helper functions
 

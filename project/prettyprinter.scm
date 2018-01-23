@@ -104,8 +104,5 @@
         (null?-exp (exp1)
           (format "null?(~a)" (pretty-print exp1)))
 
-        (cons-exp (exp1 exp2)
-          (format "cons(~a, ~a)" (pretty-print exp1) (pretty-print exp2)))
-
         )))
   )
