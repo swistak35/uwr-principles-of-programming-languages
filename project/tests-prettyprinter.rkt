@@ -88,19 +88,4 @@ end")
       (runner "[42, 0]")
       "[42, 0]")
 
-    (test-equal?
-      "car"
-      (runner "car([42, 17])")
-      "car([42, 17])")
-
-    (test-equal?
-      "cdr"
-      (runner "cdr([42, 17])")
-      "cdr([42, 17])")
-
-    (test-equal?
-      "null?"
-      (runner "null?([42, 17])")
-      "null?([42, 17])")
-
     ))

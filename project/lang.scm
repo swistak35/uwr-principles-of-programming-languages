@@ -53,18 +53,6 @@
         ("[" (separated-list expression ",") "]")
         list-exp)
 
-      (expression
-        ("car" "(" expression ")")
-        car-exp)
-
-      (expression
-        ("cdr" "(" expression ")")
-        cdr-exp)
-
-      (expression
-        ("null?" "(" expression ")")
-        null?-exp)
-
       ))
 
   ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;

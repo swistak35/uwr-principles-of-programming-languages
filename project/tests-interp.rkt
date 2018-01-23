@@ -338,57 +338,57 @@
 
     (test-equal?
       "car-1"
-      (runner "car((cons 42 (cons 17 [])))")
+      (runner "(car (cons 42 (cons 17 [])))")
       42)
 
     (test-equal?
       "car-2"
-      (runner "let x = [1, 2, 3] in car(x)")
+      (runner "let x = [1, 2, 3] in (car x)")
       1)
 
     ; Make this error more sane, not internal interpreter detail
     (test-exn
       "car-3"
       #rx"car"
-      (runner-d "car([])"))
+      (runner-d "(car [])"))
 
     ; Make this error more sane, not internal interpreter detail
     (test-exn
       "cdr-1"
       #rx"cdr"
-      (runner-d "cdr([])"))
+      (runner-d "(cdr [])"))
 
     (test-equal?
       "cdr-2"
-      (runner "cdr([2,3])")
+      (runner "(cdr [2,3])")
       '(3))
 
     (test-equal?
       "cdr-3"
-      (runner "cdr([3,2,1])")
+      (runner "(cdr [3,2,1])")
       '(2 1))
 
     (test-equal?
       "null-1"
-      (runner "null?([])")
+      (runner "(null? [])")
       #t)
 
     (test-equal?
       "null-2"
-      (runner "null?([1])")
+      (runner "(null? [1])")
       #f)
 
     ; Same as above - not needed when type inference finished
     (test-exn
       "null-3"
       #rx"expval-extractors"
-      (runner-d "null?(42)"))
+      (runner-d "(null? 42)"))
 
     (test-equal?
       "map-1"
       (runner "
               letrec map(f) =
-              letrec map2(xs) = if null?(xs) then [] else (cons (f car(xs)) ((map f) cdr(xs)))
+              letrec map2(xs) = if (null? xs) then [] else (cons (f (car xs)) ((map f) (cdr xs)))
               in map2
               increment(n) = (diff n -1)
               in ((map increment) [-1,0,1,2])")
@@ -398,11 +398,11 @@
       "filter-1"
       (runner "
               letrec filter(f) =
-              letrec filter2(xs) = if null?(xs)
+              letrec filter2(xs) = if (null? xs)
               then []
-              else if (f car(xs))
-              then (cons car(xs) ((filter f) cdr(xs)))
-              else ((filter f) cdr(xs))
+              else if (f (car xs))
+              then (cons (car xs) ((filter f) (cdr xs)))
+              else ((filter f) (cdr xs))
               in filter2
               iszero(n) = (zero? n)
               in ((filter iszero) [0,1,2,0,1,2])")
@@ -411,7 +411,7 @@
     (test-equal?
       "map-multiarg-1"
       (runner "
-              letrec map(f, xs) = if null?(xs) then [] else (cons (f car(xs)) (map f cdr(xs)))
+              letrec map(f, xs) = if (null? xs) then [] else (cons (f (car xs)) (map f (cdr xs)))
                      increment(n) = (diff n -1)
               in (map increment [-1,0,1,2])")
               '(0 1 2 3))

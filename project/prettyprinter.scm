@@ -95,14 +95,5 @@
               ", ")
             ))
 
-        (car-exp (exp1)
-          (format "car(~a)" (pretty-print exp1)))
-
-        (cdr-exp (exp1)
-          (format "cdr(~a)" (pretty-print exp1)))
-
-        (null?-exp (exp1)
-          (format "null?(~a)" (pretty-print exp1)))
-
         )))
   )
