@@ -18,20 +18,12 @@
   (test-suite
     "Type inference"
 
+    ;; Basic syntax
+
     (test-equal?
       "Positive constants"
       (runner "12")
       "int")
-
-    (test-equal?
-      "zero? with int"
-      (runner "(zero? 42)")
-      "bool")
-
-    (test-exn
-      "zero? with bool"
-      #rx"Unification"
-      (runner-d "(zero? (zero? 42))"))
 
     (test-equal?
       "if correct"
@@ -48,35 +40,11 @@
       #rx"Unification"
       (runner-d "if (zero? 42) then (zero? 1) else 2"))
 
-    (test-equal?
-      "diff correct"
-      (runner "(diff 42 22)")
-      "int")
-
+    ; NOTSURE: Whether this should behave in this way?
     (test-exn
-      "diff incorrect 1st arg"
-      #rx"Unification"
-      (runner-d "(diff (zero? 42) 22)"))
-
-    (test-exn
-      "diff incorrect 2nd arg"
-      #rx"Unification"
-      (runner-d "(diff 22 (zero? 42))"))
-
-    (test-equal?
-      "simple proc"
-      (runner "proc(y) (diff 42 y)")
-      "int -> int")
-
-    (test-equal?
-      "simple proc 2"
-      (runner "proc(y) (zero? y)")
-      "int -> bool")
-
-    (test-equal?
-      "simple polymorphic proc"
-      (runner "proc(y) 42")
-      "'1 -> int")
+      "unbound variable"
+      #rx"No binding"
+      (runner-d "x"))
 
     ;;; Primitives
 
@@ -128,6 +96,46 @@
     ;;; Calls
 
     (test-equal?
+      "diff correct"
+      (runner "(diff 42 22)")
+      "int")
+
+    (test-exn
+      "diff incorrect 1st arg"
+      #rx"Unification"
+      (runner-d "(diff (zero? 42) 22)"))
+
+    (test-exn
+      "diff incorrect 2nd arg"
+      #rx"Unification"
+      (runner-d "(diff 22 (zero? 42))"))
+
+    (test-equal?
+      "simple proc"
+      (runner "proc(y) (diff 42 y)")
+      "int -> int")
+
+    (test-equal?
+      "simple proc 2"
+      (runner "proc(y) (zero? y)")
+      "int -> bool")
+
+    (test-equal?
+      "simple polymorphic proc"
+      (runner "proc(y) 42")
+      "'1 -> int")
+
+    (test-equal?
+      "zero? with int"
+      (runner "(zero? 42)")
+      "bool")
+
+    (test-exn
+      "zero? with bool"
+      #rx"Unification"
+      (runner-d "(zero? (zero? 42))"))
+
+    (test-equal?
       "simple call"
       (runner "(proc(y) (diff 42 y) 20)")
       "int")
@@ -141,12 +149,6 @@
       "call to something which is not a function"
       #rx"Call to something which is not a function"
       (runner-d "(42 42)"))
-
-    ; NOTSURE: Whether this should behave in this way?
-    (test-exn
-      "unbound variable"
-      #rx"No binding"
-      (runner-d "x"))
 
     ; (test-equal?
     ;   "primitive diff"
