@@ -4,11 +4,12 @@
 (require "lang.scm")
 (require "type-data-structures.rkt")
 (require "type-inference.scm")
+(require "type-prettyprint.rkt")
 
 (provide inference-tests)
 
 (define (runner prg)
-  (infer/pgm (scan&parse prg)))
+  (prettyprint-type (infer/pgm (scan&parse prg))))
 
 (define (runner-d prg)
   (lambda () (runner prg)))
@@ -20,12 +21,12 @@
     (test-equal?
       "Positive constants"
       (runner "12")
-      (int-type))
+      "int")
 
     (test-equal?
       "zero? with int"
       (runner "(zero? 42)")
-      (bool-type))
+      "bool")
 
     (test-exn
       "zero? with bool"
@@ -35,7 +36,7 @@
     (test-equal?
       "if correct"
       (runner "if (zero? 42) then 1 else 2")
-      (int-type))
+      "int")
 
     (test-exn
       "if with incorrect condition type"
@@ -50,7 +51,7 @@
     (test-equal?
       "diff correct"
       (runner "(diff 42 22)")
-      (int-type))
+      "int")
 
     (test-exn
       "diff incorrect 1st arg"
@@ -65,22 +66,22 @@
     (test-equal?
       "simple proc"
       (runner "proc(y) (diff 42 y)")
-      (arrow-type (int-type) (int-type)))
+      "int -> int")
 
     (test-equal?
       "simple proc 2"
       (runner "proc(y) (zero? y)")
-      (arrow-type (int-type) (bool-type)))
+      "int -> bool")
 
     (test-equal?
       "simple polymorphic proc"
       (runner "proc(y) 42")
-      (arrow-type (var-type 1) (int-type)))
+      "'1 -> int")
 
     (test-equal?
       "simple call"
       (runner "(proc(y) (diff 42 y) 20)")
-      (int-type))
+      "int")
 
     (test-exn
       "call with wrong argument"
