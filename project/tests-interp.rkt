@@ -36,17 +36,17 @@
       -33)
 
     (test-equal?
-      "simple-arith-1"
+      "primitive diff simple-arith-1"
       (runner "(diff 44 33)")
       11)
 
     (test-equal?
-      "nested-arith-left"
+      "primitive diff nested-arith-left"
       (runner "(diff (diff 44 33) 22)")
       -11)
 
     (test-equal?
-      "nested-arith-right"
+      "primitive diff nested-arith-right"
       (runner "(diff 55 (diff 22 11))")
       44)
 
@@ -57,12 +57,12 @@
 
     (test-equal?
       "test-var-2"
-      (runner "-(x,1)")
+      (runner "(diff x 1)")
       9)
 
     (test-equal?
       "test-var-3"
-      (runner "-(1,x)")
+      (runner "(diff 1 x)")
       -9)
 
     (test-exn
@@ -73,27 +73,27 @@
     (test-exn
       "test-unbound-var-2"
       #rx"apply-env"
-      (runner-d "-(x,foo)"))
+      (runner-d "(diff x foo)"))
 
     (test-equal?
       "if-true"
-      (runner "if zero?(0) then 3 else 4")
+      (runner "if (zero? 0) then 3 else 4")
       3)
 
     (test-equal?
       "if-false"
-      (runner "if zero?(1) then 3 else 4")
+      (runner "if (zero? 1) then 3 else 4")
       4)
 
     (test-exn
       "no-bool-to-diff-1"
       #rx"expval-extractors"
-      (runner-d "-(zero?(0),1)"))
+      (runner-d "(diff (zero? 0) 1)"))
 
     (test-exn
       "no-bool-to-diff-2"
       #rx"expval-extractors"
-      (runner-d "-(1,zero?(0))"))
+      (runner-d "(diff 1 (zero? 0))"))
 
     (test-exn
       "no-int-to-if"
@@ -102,22 +102,22 @@
 
     (test-equal?
       "if-eval-test-true"
-      (runner "if zero?(-(11,11)) then 3 else 4")
+      (runner "if (zero? (diff 11 11)) then 3 else 4")
       3)
 
     (test-equal?
       "if-eval-test-false"
-      (runner "if zero?(-(11, 12)) then 3 else 4")
+      (runner "if (zero? (diff 11 12)) then 3 else 4")
       4)
 
     (test-equal?
       "if-eval-test-true-2"
-      (runner "if zero?(-(11, 11)) then 3 else foo")
+      (runner "if (zero? (diff 11 11)) then 3 else foo")
       3)
 
     (test-equal?
       "if-eval-test-false-2"
-      (runner "if zero?(-(11,12)) then foo else 4")
+      (runner "if (zero? (diff 11 12)) then foo else 4")
       4)
 
     (test-equal?
@@ -127,17 +127,17 @@
 
     (test-equal?
       "eval-let-body"
-      (runner "let x = 3 in -(x,1)")
+      (runner "let x = 3 in (diff x 1)")
       2)
 
     (test-equal?
       "eval-let-rhs"
-      (runner "let x = -(4,1) in -(x,1)")
+      (runner "let x = (diff 4 1) in (diff x 1)")
       2)
 
     (test-equal?
       "simple-nested-let"
-      (runner "let x = 3 in let y = 4 in -(x,y)")
+      (runner "let x = 3 in let y = 4 in (diff x y)")
       -1)
 
     (test-equal?
@@ -147,32 +147,32 @@
 
     (test-equal?
       "check-shadowing-in-rhs"
-      (runner "let x = 3 in let x = -(x,1) in x")
+      (runner "let x = 3 in let x = (diff x 1) in x")
       2)
 
     (test-equal?
       "apply-proc-in-rator-pos"
-      (runner "(proc(x) -(x,1)  30)")
+      (runner "(proc(x) (diff x 1)  30)")
       29)
 
     (test-equal?
       "apply-simple-proc"
-      (runner "let f = proc (x) -(x,1) in (f 30)")
+      (runner "let f = proc (x) (diff x 1) in (f 30)")
       29)
 
     (test-equal?
       "let-to-proc-1"
-      (runner "(proc(f)(f 30)  proc(x)-(x,1))")
+      (runner "(proc(f)(f 30)  proc(x)(diff x 1))")
       29)
 
     (test-equal?
       "nested-procs"
-      (runner "((proc (x) proc (y) -(x,y)  5) 6)")
+      (runner "((proc (x) proc (y) (diff x y)  5) 6)")
       -1)
 
     (test-equal?
       "nested-procs2"
-      (runner "let f = proc(x) proc (y) -(x,y) in ((f -(10,5)) 6)")
+      (runner "let f = proc(x) proc (y) (diff x y) in ((f (diff 10 5)) 6)")
       -1)
 
     (test-equal?
@@ -184,37 +184,37 @@
               in proc (n) ((f (d d)) n)
               in let t4m = proc (f)
               proc(x)
-              if zero?(x) then 0 else -((f -(x,1)),-4)
+              if (zero? x) then 0 else (diff (f (diff x 1)) -4)
               in let times4 = (fix t4m)
               in (times4 3)")
               12)
 
     (test-equal?
       "simple-letrec-1"
-      (runner "letrec f(x) = -(x,1) in (f 33)")
+      (runner "letrec f(x) = (diff x 1) in (f 33)")
       32)
 
     (test-equal?
       "simple-letrec-2"
-      (runner "letrec f(x) = if zero?(x)
+      (runner "letrec f(x) = if (zero? x)
                              then 0
-                             else -((f -(x,1)), -2)
+                             else (diff (f (diff x 1)) -2)
               in (f 4)")
       8)
 
     (test-equal?
       "simple-letrec-3"
       (runner "let m = -5 
-              in letrec f(x) = if zero?(x)
+              in letrec f(x) = if (zero? x)
               then 0
-              else -((f -(x,1)), m)
+              else (diff (f (diff x 1)) m)
               in (f 4)")
       20)
 
     (test-equal?
       "HO-nested-letrecs"
-      (runner "letrec even(odd) = proc(x) if zero?(x) then 1 else (odd -(x,1))
-              in letrec odd(x)  = if zero?(x) then 0 else ((even odd) -(x,1))
+      (runner "letrec even(odd) = proc(x) if (zero? x) then 1 else (odd (diff x 1))
+              in letrec odd(x)  = if (zero? x) then 0 else ((even odd) (diff x 1))
               in (odd 13)")
               1)
 
@@ -227,9 +227,9 @@
       "gensym-test-1"
       (runner "
               let g = let counter = newref(0) 
-              in proc (dummy) let d = setref(counter, -(deref(counter),-1))
+              in proc (dummy) let d = setref(counter, (diff deref(counter) -1))
               in deref(counter)
-              in -((g 11),(g 22))")
+              in (diff (g 11) (g 22))")
       -1)
 
     (test-equal?
@@ -249,39 +249,23 @@
               let g = let counter = newref(0) 
               in proc (dummy)
               begin
-              setref(counter, -(deref(counter),-1));
+              setref(counter, (diff deref(counter) -1));
               deref(counter)
               end
-              in -((g 11),(g 22))")
+              in (diff (g 11) (g 22))")
       -1)
 
     (test-equal?
       "even-odd-via-set-1"
       (runner "
               let x = newref(0)
-              in letrec even(d) = if zero?(deref(x)) 
+              in letrec even(d) = if (zero? deref(x)) 
               then 1
-              else let d = setref(x, -(deref(x),1))
+              else let d = setref(x, (diff deref(x) 1))
               in (odd d)
-              odd(d)  = if zero?(deref(x)) 
+              odd(d)  = if (zero? deref(x)) 
               then 0
-              else let d = setref(x, -(deref(x),1))
-              in (even d)
-              in let d = setref(x,13)
-              in (odd -100)")
-      1)
-
-    (test-equal?
-      "even-odd-via-set-1"
-      (runner "
-              let x = newref(0)
-              in letrec even(d) = if zero?(deref(x)) 
-              then 1
-              else let d = setref(x, -(deref(x),1))
-              in (odd d)
-              odd(d)  = if zero?(deref(x)) 
-              then 0
-              else let d = setref(x, -(deref(x),1))
+              else let d = setref(x, (diff deref(x) 1))
               in (even d)
               in let d = setref(x,13)
               in (odd -100)")
@@ -292,9 +276,9 @@
       (runner "
               let x = newref(22)
               in let f = proc (z)
-              let zz = newref(-(z,deref(x)))
+              let zz = newref((diff z deref(x)))
               in deref(zz)
-              in -((f 66), (f 55))")
+              in (diff (f 66) (f 55))")
       11)
 
     (test-equal?
@@ -381,7 +365,7 @@
               letrec map(f) =
               letrec map2(xs) = if null?(xs) then [] else cons((f car(xs)), ((map f) cdr(xs)))
               in map2
-              increment(n) = -(n,-1)
+              increment(n) = (diff n -1)
               in ((map increment) [-1,0,1,2])")
       '(0 1 2 3))
 
@@ -395,7 +379,7 @@
               then cons(car(xs), ((filter f) cdr(xs)))
               else ((filter f) cdr(xs))
               in filter2
-              iszero(n) = zero?(n)
+              iszero(n) = (zero? n)
               in ((filter iszero) [0,1,2,0,1,2])")
       '(0 0))
 
@@ -403,7 +387,7 @@
       "map-multiarg-1"
       (runner "
               letrec map(f, xs) = if null?(xs) then [] else cons((f car(xs)), (map f cdr(xs)))
-                     increment(n) = -(n, -1)
+                     increment(n) = (diff n -1)
               in (map increment [-1,0,1,2])")
               '(0 1 2 3))
 

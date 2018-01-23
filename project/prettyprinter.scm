@@ -27,9 +27,6 @@
 
         (const-exp (num) (number->string num))
 
-        (diff-exp (exp1 exp2)
-          (format "-(~a,~a)" (pretty-print exp1) (pretty-print exp2)))
-
         (var-exp (var)
           (symbol->string var))
 
@@ -41,9 +38,6 @@
               (format "else ~a" (pretty-print exp3))
               )
             "\n"))
-
-        (zero?-exp (exp1)
-          (format "zero?(~a)" (pretty-print exp1)))
 
         (let-exp (var exp1 body)
           (string-join

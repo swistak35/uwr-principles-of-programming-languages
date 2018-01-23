@@ -22,14 +22,6 @@
       (expression (number) const-exp)
 
       (expression
-        ("-" "(" expression "," expression ")")
-        diff-exp)
-      
-      (expression
-        ("zero?" "(" expression ")")
-        zero?-exp)
-
-      (expression
         ("if" expression "then" expression "else" expression)
         if-exp)
 

@@ -24,19 +24,9 @@
       "-12")
 
     (test-equal?
-      "Simple arithmethic"
-      (runner "-(44,33)")
-      "-(44,33)")
-
-    (test-equal?
-      "Nested airth left"
-      (runner "-(-(44,33),22)")
-      "-(-(44,33),22)")
-
-    (test-equal?
-      "Nested airth left"
-      (runner "-(22,-(44,33))")
-      "-(22,-(44,33))")
+      "Primitive call"
+      (runner "(diff 44 33)")
+      "(diff 44 33)")
 
     (test-equal?
       "Var exp"
@@ -51,11 +41,6 @@ then 2
 else 3")
 
     (test-equal?
-      "zero? exp"
-      (runner "zero?(42)")
-      "zero?(42)")
-
-    (test-equal?
       "let"
       (runner "let x = 3 in x")
 "let x = 3
@@ -63,8 +48,8 @@ in x")
 
     (test-equal?
       "proc"
-      (runner "proc (y) -(42, y)")
-      "proc(y) -(42,y)")
+      (runner "proc (y) (diff 42  y)")
+      "proc(y) (diff 42 y)")
 
     (test-equal?
       "call"
@@ -73,10 +58,10 @@ in x")
 
     (test-equal?
       "letrec"
-      (runner "letrec foo(x) = -(42,x)
-                      bar(y) = -(y,z) in (foo (bar 17))")
-"letrec foo(x) = -(42,x)
-       bar(y) = -(y,z)
+      (runner "letrec foo(x) = (diff 42 x)
+                      bar(y) = (diff y z) in (foo (bar 17))")
+"letrec foo(x) = (diff 42 x)
+       bar(y) = (diff y z)
 in (foo (bar 17))")
 
     (test-equal?

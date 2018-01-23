@@ -129,9 +129,6 @@
           (int-type)
           (empty-subst)))
 
-      (zero?-exp (exp1)
-        (handle-unary (int-type) (bool-type) exp1 aset))
-
       (if-exp (exp1 exp2 exp3)
         (let* ((exp1-answer (infer-exp exp1 aset))
                (exp1-subst (answer->subst exp1-answer))
@@ -152,13 +149,6 @@
           (an-answer
             (subst-in-type final-subst exp2-type)
             final-subst)))
-
-      (diff-exp (exp1 exp2)
-        (handle-call
-          (list (int-type) (int-type))
-          (int-type)
-          (list exp1 exp2)
-          aset))
 
       (proc-exp (bvar body)
         (let* ((arg-type (get-fresh-typevar))
