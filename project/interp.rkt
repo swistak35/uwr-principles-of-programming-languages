@@ -4,7 +4,7 @@
                   foldl))
 (require "lang.rkt")
 (require "data-structures.rkt")
-(require "environments.scm")
+(require "environments.rkt")
 (require "store.scm")
 
 (provide value-of-program value-of instrument-newref)
