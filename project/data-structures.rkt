@@ -1,6 +1,6 @@
 #lang eopl
 
-(require (only-in "lang.scm"
+(require (only-in "lang.rkt"
                   expression?))
 (require (only-in "store.scm"
                   reference?))

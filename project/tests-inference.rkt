@@ -1,7 +1,7 @@
 #lang eopl
 
 (require rackunit)
-(require "lang.scm")
+(require "lang.rkt")
 (require "type-data-structures.rkt")
 (require "type-inference.scm")
 (require "type-prettyprint.rkt")

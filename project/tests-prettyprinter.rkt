@@ -1,7 +1,7 @@
 #lang eopl
 
 (require rackunit)
-(require "lang.scm")
+(require "lang.rkt")
 (require "prettyprinter.scm")
 
 (provide prettyprinter-tests)
