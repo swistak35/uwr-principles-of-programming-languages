@@ -87,4 +87,10 @@
       #rx"Unification"
       (runner-d "(proc(y) -(42,y) zero?(42))"))
 
+    ; NOTSURE: Whether this should behave in this way?
+    (test-exn
+      "unbound variable"
+      #rx"No binding"
+      (runner-d "x"))
+
     ))

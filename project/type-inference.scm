@@ -62,20 +62,16 @@
 
   ; Assumption: arg-type and return-type are concrete
   (define (handle-unary arg-type return-type exp aset)
-    (let* ((fun-type (arrow-type arg-type return-type))
-           (exp-answer (infer-exp exp aset))
-           (exp-subst (answer->subst exp-answer))
-           (unify-subst (unify/one
-                          fun-type
-                          (arrow-type (answer->type exp-answer) return-type))))
-      (an-answer
-        return-type
-        (merge-subst exp-subst unify-subst))))
+    (handle-call (list arg-type) return-type (list exp) aset))
 
   ; Assumption: arg-types and return-type are concrete
   (define (handle-call arg-types return-type args aset)
     ; There should be an error if lengths of arg-types and args are not equal
-    (let* ((fun-type (arrow-type (tuple-type arg-types) return-type))
+    ; It doesn't handle passing 0 arguments either
+    (let* ((args-type (if (= (length arg-types) 1)
+                        (car arg-types)
+                        (tuple-type arg-types)))
+           (fun-type (arrow-type args-type return-type))
            (arg-result (foldl
                          (lambda (arg-type arg result)
                            (let* ((current-subst (car result))
