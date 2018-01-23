@@ -65,21 +65,6 @@
       #rx"Wrong number of arguments to diff, given 0 expected 2"
       (runner-d "(diff)"))
 
-    (test-equal?
-      "test-var-1"
-      (runner "x")
-      10)
-
-    (test-equal?
-      "test-var-2"
-      (runner "(diff x 1)")
-      9)
-
-    (test-equal?
-      "test-var-3"
-      (runner "(diff 1 x)")
-      -9)
-
     (test-exn
       "test-unbound-var-1"
       #rx"apply-env"

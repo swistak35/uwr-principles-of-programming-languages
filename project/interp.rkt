@@ -16,7 +16,7 @@
 (define (initial-env)
   (foldl
     (lambda (p res) (extend-env p (proc-val (primitive p)) res))
-    (init-env)
+    (empty-env)
     primitives-names))
 
 (define value-of-program 
