@@ -39,6 +39,26 @@
     (cases answer ans
       (an-answer (ans-type ans-substitution) ans-substitution)))
 
+  (define primitives-types
+    (list
+      `(zero?
+         ,(int-type)
+         ,(bool-type))
+      `(diff
+         ,(tuple-type (list (int-type) (int-type)))
+         ,(int-type))
+      ))
+
+  (define (initial-aset)
+    (foldl
+      (lambda (primitive aset)
+        (let ((name (car primitive))
+              (arg-type (cadr primitive))
+              (return-type (caddr primitive)))
+          (extend-aset name (arrow-type arg-type return-type) aset)))
+      (empty-aset)
+      primitives-types))
+
   (define (infer/pgm pgm)
     (cases program pgm
       (a-program (exp1)
@@ -46,7 +66,7 @@
 
   (define (infer exp)
     (initialize-typevar-counter!)
-    (let* ((exp-ans (infer-exp exp (empty-aset)))
+    (let* ((exp-ans (infer-exp exp (initial-aset)))
            (exp-type (answer->type exp-ans))
            (exp-subst (answer->subst exp-ans)))
       exp-type))
@@ -65,6 +85,16 @@
     (handle-call (list arg-type) return-type (list exp) aset))
 
   ; Assumption: arg-types and return-type are concrete
+  (define (handle-call/arrow arr args aset)
+    (cases type arr
+      (arrow-type (left right)
+        (cases type left
+          (tuple-type (arg-types)
+            (handle-call arg-types right args aset))
+          (else
+            (handle-call (list left) right args aset))))
+      (else (eopl:error 'infer "Call to something which is not a function ~s" arr))))
+
   (define (handle-call arg-types return-type args aset)
     ; There should be an error if lengths of arg-types and args are not equal
     ; It doesn't handle passing 0 arguments either
@@ -144,20 +174,17 @@
           (empty-subst)))
 
       (call-exp (rator rands)
-                ; does handle only one argument procedures now
-        (let* ((rand (car rands))
-               (rator-answer (infer-exp rator aset))
-               (rand-aset-subst (answer->subst rator-answer))
-               (rand-answer (infer-exp rand (subst-in-aset rand-aset-subst aset)))
-               (result-typevar (get-fresh-typevar))
-               (final-subst (merge-subst (merge-subst rand-aset-subst (answer->subst rand-answer)) (unify/one
-                                                                                                     (subst-in-type (answer->subst rand-answer) (answer->type rator-answer))
-                                                                                                     (arrow-type (answer->type rand-answer) result-typevar)))))
+        (let* ((rator-answer (infer-exp rator aset))
+               (handle-call-answer (handle-call/arrow
+                                     (answer->type rator-answer)
+                                     rands
+                                     (subst-in-aset (answer->subst rator-answer) aset))))
           (an-answer
-            (subst-in-type final-subst result-typevar) ; in theory it should be only unificator from unify/one above?
-            final-subst)))
+            (answer->type handle-call-answer)
+            (merge-subst (answer->subst rator-answer) (answer->subst handle-call-answer)))))
 
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
+
       ))
 
   )

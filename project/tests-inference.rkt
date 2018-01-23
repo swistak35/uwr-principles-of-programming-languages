@@ -87,10 +87,20 @@
       #rx"Unification"
       (runner-d "(proc(y) -(42,y) zero?(42))"))
 
+    (test-exn
+      "call to something which is not a function"
+      #rx"Call to something which is not a function"
+      (runner-d "(42 42)"))
+
     ; NOTSURE: Whether this should behave in this way?
     (test-exn
       "unbound variable"
       #rx"No binding"
       (runner-d "x"))
+
+    ; (test-equal?
+    ;   "primitive diff"
+    ;   (runner "(diff 42 20)")
+    ;   (int-type))
 
     ))
