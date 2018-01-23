@@ -6,7 +6,7 @@
   (require "drscheme-init.scm")
   (require "data-structures.scm")  ; for expval constructors
   (require "lang.scm")             ; for scan&parse
-  (require "interp.scm")           ; for value-of-program
+  (require "interp.rkt")           ; for value-of-program
   (require "tests.scm")            ; for test-list
   
   (provide run run-all)

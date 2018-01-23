@@ -3,7 +3,7 @@
 (require rackunit)
 (require "data-structures.scm")
 (require "lang.scm")
-(require "interp.scm")
+(require "interp.rkt")
 
 (provide interp-tests)
 
