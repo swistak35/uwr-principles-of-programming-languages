@@ -87,9 +87,6 @@
               "end")
             "\n"))
 
-        (newref-exp (exp1)
-          (format "newref(~a)" (pretty-print exp1)))
-
         (deref-exp (exp1)
           (format "deref(~a)" (pretty-print exp1)))
 

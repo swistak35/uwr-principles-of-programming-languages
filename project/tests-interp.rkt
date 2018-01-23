@@ -226,7 +226,7 @@
     (test-equal?
       "gensym-test-1"
       (runner "
-              let g = let counter = newref(0) 
+              let g = let counter = (newref 0) 
               in proc (dummy) let d = setref(counter, (diff deref(counter) -1))
               in deref(counter)
               in (diff (g 11) (g 22))")
@@ -234,19 +234,19 @@
 
     (test-equal?
       "simple-store-test-1"
-      (runner "let x = newref(17) in deref(x)")
+      (runner "let x = (newref 17) in deref(x)")
       17)
 
     (test-equal?
       "assignment-test-1"
-      (runner "let x = newref(17) 
+      (runner "let x = (newref 17) 
               in begin setref(x,27); deref(x) end")
       27)
 
     (test-equal?
       "gensym-test-2"
       (runner "
-              let g = let counter = newref(0) 
+              let g = let counter = (newref 0) 
               in proc (dummy)
               begin
               setref(counter, (diff deref(counter) -1));
@@ -258,7 +258,7 @@
     (test-equal?
       "even-odd-via-set-1"
       (runner "
-              let x = newref(0)
+              let x = (newref 0)
               in letrec even(d) = if (zero? deref(x)) 
               then 1
               else let d = setref(x, (diff deref(x) 1))
@@ -274,9 +274,9 @@
     (test-equal?
       "show-allocation-1"
       (runner "
-              let x = newref(22)
+              let x = (newref 22)
               in let f = proc (z)
-              let zz = newref((diff z deref(x)))
+              let zz = (newref (diff z deref(x)))
               in deref(zz)
               in (diff (f 66) (f 55))")
       11)
@@ -284,7 +284,7 @@
     (test-equal?
       "chains-1"
       (runner "
-              let x = newref(newref(0))
+              let x = (newref (newref 0))
               in begin 
               setref(deref(x), 11);
               deref(deref(x))

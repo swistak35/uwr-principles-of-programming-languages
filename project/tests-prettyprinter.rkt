@@ -74,11 +74,6 @@ in (foo (bar 17))")
 end")
 
     (test-equal?
-      "newref"
-      (runner "newref(42)")
-      "newref(42)")
-
-    (test-equal?
       "deref"
       (runner "deref(y)")
       "deref(y)")

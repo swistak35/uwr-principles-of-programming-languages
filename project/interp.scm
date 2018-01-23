@@ -28,19 +28,17 @@
       'diff (proc-val (primitive 'diff))
       (extend-env
         'zero? (proc-val (primitive 'zero?))
-        (init-env))))
+        (extend-env
+          'newref (proc-val (primitive 'newref))
+          (init-env)))))
 
-  ;; value-of-program : Program -> ExpVal
-  ;; Page: 110
   (define value-of-program 
     (lambda (pgm)
-      (initialize-store!)               ; new for explicit refs.
+      (initialize-store!)
       (cases program pgm
         (a-program (exp1)
           (value-of exp1 (initial-env))))))
 
-  ;; value-of : Exp * Env -> ExpVal
-  ;; Page: 113
   (define value-of
     (lambda (exp env)
       (cases expression exp
@@ -81,10 +79,6 @@
                      v1
                      (value-of-begins (car es) (cdr es)))))))
             (value-of-begins exp1 exps)))
-
-        (newref-exp (exp1)
-          (let ((v1 (value-of exp1 env)))
-            (ref-val (newref v1))))
 
         (deref-exp (exp1)
           (let ((v1 (value-of exp1 env)))
@@ -144,6 +138,9 @@
 
       ((eq? name 'zero?)
        (bool-val (zero? (expval->num (car args)))))
+
+      ((eq? name 'newref)
+       (ref-val (newref (car args))))
 
       (else (eopl:error 'apply-primitive "Unknown primitive ~s" name))))
 

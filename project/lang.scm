@@ -50,10 +50,6 @@
         begin-exp)
 
       (expression
-        ("newref" "(" expression ")")
-        newref-exp)
-
-      (expression
         ("deref" "(" expression ")")
         deref-exp)
 
