@@ -32,15 +32,10 @@
     (an-answer
       (answer-type type?)
       (answer-subst substitution?)))
-      ; (answer-constraints (list-of equality?))))
 
   (define (answer->type ans)
     (cases answer ans
       (an-answer (ans-type ans-substitution) ans-type)))
-
-  ; (define (answer->constraints ans)
-  ;   (cases answer ans
-  ;     (an-answer (ans-type ans-constraints) ans-constraints)))
 
   (define (answer->subst ans)
     (cases answer ans
@@ -56,9 +51,7 @@
     (let* ((exp-ans (infer-exp exp (empty-aset)))
            (exp-type (answer->type exp-ans))
            (exp-subst (answer->subst exp-ans)))
-           ; (exp-subst (unify exp-constraints (empty-subst))))
       exp-type))
-      ; (subst-in-type exp-subst exp-type)))
 
   (define (unify/one left right)
     (unify (list (an-equality left right)) (empty-subst)))
@@ -69,22 +62,27 @@
       (extend-aset (bvar btype saved-aset)
         (extend-aset bvar (subst-in-type subst btype) (subst-in-aset subst saved-aset)))))
 
+  ; Assumption: arg-type and return-type are concrete
+  (define (handle-unary arg-type return-type exp aset)
+    (let* ((fun-type (arrow-type arg-type return-type))
+           (exp-answer (infer-exp exp aset))
+           (exp-subst (answer->subst exp-answer))
+           (unify-subst (unify/one
+                          fun-type
+                          (arrow-type (answer->type exp-answer) return-type))))
+      (an-answer
+        return-type
+        (merge-subst exp-subst unify-subst))))
+
   (define (infer-exp exp aset)
     (cases expression exp
       (const-exp (num)
         (an-answer
           (int-type)
           (empty-subst)))
-          ; '()))
 
       (zero?-exp (exp1)
-        (let* ((zero?-type (arrow-type (int-type) (bool-type)))
-               (exp1-answer (infer-exp exp1 aset))
-               (exp1-subst (answer->subst exp1-answer))
-               (unify-subst (unify/one zero?-type (arrow-type (answer->type exp1-answer) (bool-type)))))
-          (an-answer
-            (bool-type)
-            (merge-subst exp1-subst unify-subst))))
+        (handle-unary (int-type) (bool-type) exp1 aset))
 
       (if-exp (exp1 exp2 exp3)
         (let* ((exp1-answer (infer-exp exp1 aset))
@@ -123,17 +121,16 @@
           (an-answer
             (subst-in-type body-subst (arrow-type arg-type (answer->type body-answer)))
             body-subst)))
-            ; (arrow-type arg-type (answer->type body-answer))
-            ; (answer->constraints body-answer))))
 
       (var-exp (var)
         (an-answer
           (apply-aset aset var)
           (empty-subst)))
-          ; '()))
 
-      (call-exp (rator rand)
-        (let* ((rator-answer (infer-exp rator aset))
+      (call-exp (rator rands)
+                ; does handle only one argument procedures now
+        (let* ((rand (car rands))
+               (rator-answer (infer-exp rator aset))
                (rand-aset-subst (answer->subst rator-answer))
                (rand-answer (infer-exp rand (subst-in-aset rand-aset-subst aset)))
                (result-typevar (get-fresh-typevar))
@@ -143,16 +140,6 @@
           (an-answer
             (subst-in-type final-subst result-typevar) ; in theory it should be only unificator from unify/one above?
             final-subst)))
-            ; )
-          ; (an-answer
-            ; result-typevar
-            ; (append
-            ;   (list
-            ;     (an-equality
-            ;       (answer->type rator-answer)
-            ;       (arrow-type (answer->type rand-answer) result-typevar)))
-            ;   (answer->constraints rator-answer)
-            ;   (answer->constraints rand-answer)))))
 
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
       ))

@@ -55,23 +55,27 @@
         (proc-exp (var body)
           (format "proc(~a) ~a" (symbol->string var) (pretty-print body)))
 
-        (call-exp (rator rand)
+        (call-exp (rator rands)
           (format
             "(~a ~a)"
             (pretty-print rator)
-            (pretty-print rand)))
+            (string-join (map pretty-print rands) " ")))
 
         (letrec-exp (p-names b-vars p-bodies letrec-body)
           (string-join
             (list
               (format "letrec ~a(~a) = ~a"
                 (symbol->string (car p-names))
-                (symbol->string (car b-vars))
+                (string-join (map symbol->string (car b-vars)) ", ")
                 (pretty-print (car p-bodies)))
               (string-join
                 (map
-                  (lambda (p-name b-var p-body)
-                    (format "       ~a(~a) = ~a" p-name b-var (pretty-print p-body)))
+                  (lambda (p-name b-vars p-body)
+                    (format
+                      "       ~a(~a) = ~a"
+                      p-name
+                      (string-join (map symbol->string b-vars) ", ")
+                      (pretty-print p-body)))
                   (cdr p-names) (cdr b-vars) (cdr p-bodies))
                 "\n")
               (format "in ~a" (pretty-print letrec-body)))

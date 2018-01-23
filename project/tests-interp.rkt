@@ -399,4 +399,12 @@
               in ((filter iszero) [0,1,2,0,1,2])")
       '(0 0))
 
+    (test-equal?
+      "map-multiarg-1"
+      (runner "
+              letrec map(f, xs) = if null?(xs) then [] else cons((f car(xs)), (map f cdr(xs)))
+                     increment(n) = -(n, -1)
+              in (map increment [-1,0,1,2])")
+              '(0 1 2 3))
+
     ))

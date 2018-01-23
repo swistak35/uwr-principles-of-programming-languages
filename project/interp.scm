@@ -69,12 +69,12 @@
               (extend-env var val1 env))))
         
         (proc-exp (var body)
-          (proc-val (procedure var body env)))
+          (proc-val (procedure (list var) body env)))
 
-        (call-exp (rator rand)
+        (call-exp (rator rands)
           (let ((proc (expval->proc (value-of rator env)))
-                (arg (value-of rand env)))
-            (apply-procedure proc arg)))
+                (args (map (lambda (rand) (value-of rand env)) rands)))
+            (apply-procedure proc args)))
 
         (letrec-exp (p-names b-vars p-bodies letrec-body)
           (value-of letrec-body
@@ -133,17 +133,17 @@
 
         )))
 
-  ;; instrumented version
   (define apply-procedure
-    (lambda (proc1 arg)
+    (lambda (proc1 args)
       (cases proc proc1
-        (procedure (var body saved-env)
-          (let ((new-env (extend-env var arg saved-env)))
+        (procedure (vars body saved-env)
+          (let ((new-env (foldl
+                           (lambda (var arg res-env) (extend-env var arg res-env))
+                           saved-env
+                           vars args)))
             (value-of body new-env))))))
 
 
-  ;; store->readable : Listof(List(Ref,Expval)) 
-  ;;                    -> Listof(List(Ref,Something-Readable))
   (define store->readable
     (lambda (l)
       (map

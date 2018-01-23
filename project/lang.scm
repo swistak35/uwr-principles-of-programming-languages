@@ -44,12 +44,12 @@
         proc-exp)
 
       (expression
-        ("(" expression expression ")")
+        ("(" expression (arbno expression) ")")
         call-exp)
 
       (expression
         ("letrec"
-         (arbno identifier "(" identifier ")" "=" expression)
+         (arbno identifier "(" (separated-list identifier ",") ")" "=" expression)
          "in" expression)
         letrec-exp)
       
