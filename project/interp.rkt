@@ -10,14 +10,14 @@
 
 (provide value-of-program value-of instrument-newref)
 
+(define primitives-names
+  '(diff zero? newref))
+
 (define (initial-env)
-  (extend-env
-    'diff (proc-val (primitive 'diff))
-    (extend-env
-      'zero? (proc-val (primitive 'zero?))
-      (extend-env
-        'newref (proc-val (primitive 'newref))
-        (init-env)))))
+  (foldl
+    (lambda (p res) (extend-env p (proc-val (primitive p)) res))
+    (init-env)
+    primitives-names))
 
 (define value-of-program 
   (lambda (pgm)
