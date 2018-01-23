@@ -2,7 +2,6 @@
 
 (require (only-in racket/base
                   foldl))
-(require "drscheme-init.scm")
 (require "lang.scm")
 (require "data-structures.scm")
 (require "environments.scm")

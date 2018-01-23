@@ -1,7 +1,5 @@
 (module prettyprinter (lib "eopl.ss" "eopl")
 
-  ; (require "data-structures.scm")
-  ; (require "drscheme-init.scm")
   (require "lang.scm")
   (require (only-in racket/base
                     foldl))

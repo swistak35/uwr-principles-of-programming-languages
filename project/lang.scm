@@ -1,7 +1,5 @@
 (module lang (lib "eopl.ss" "eopl")                
 
-  (require "drscheme-init.scm")
-  
   (provide (all-defined-out))
 
   ;;;;;;;;;;;;;;;; grammatical specification ;;;;;;;;;;;;;;;;

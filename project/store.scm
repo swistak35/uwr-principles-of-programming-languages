@@ -1,6 +1,4 @@
 (module store (lib "eopl.ss" "eopl")
-  
-  (require "drscheme-init.scm")
    
   (provide initialize-store! reference? newref deref setref!
     instrument-newref get-store-as-list)
