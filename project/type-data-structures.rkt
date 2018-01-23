@@ -18,6 +18,11 @@
     (types (list-of type?)))
   )
 
+(define-datatype type-scheme type-scheme?
+  (a-type-scheme
+    (quantified-ids (list-of integer?))
+    (quantified-type type?)))
+
 (define typevar-counter 'uninitialized)
 (define (initialize-typevar-counter!)
   (set! typevar-counter 0))

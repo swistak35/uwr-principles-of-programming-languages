@@ -12,7 +12,7 @@
     (empty-aset)
     (extend-aset 
       (bvar symbol?)
-      (btype type?)
+      (btype type-scheme?)
       (saved-aset assumption-set?)))
 
   (define (apply-aset aset var)
@@ -39,21 +39,20 @@
 
   (define primitives-types
     (list
-      `(zero?
-         ,(int-type)
-         ,(bool-type))
-      `(diff
-         ,(tuple-type (list (int-type) (int-type)))
-         ,(int-type))
+      (list 'zero? (a-type-scheme '() (arrow-type
+                                        (int-type)
+                                        (bool-type))))
+      (list 'diff (a-type-scheme '() (arrow-type
+                                       (tuple-type (list (int-type) (int-type)))
+                                       (int-type))))
       ))
 
   (define (initial-aset)
     (foldl
       (lambda (primitive aset)
         (let ((name (car primitive))
-              (arg-type (cadr primitive))
-              (return-type (caddr primitive)))
-          (extend-aset name (arrow-type arg-type return-type) aset)))
+              (scheme (cadr primitive)))
+          (extend-aset name scheme aset)))
       (empty-aset)
       primitives-types))
 
@@ -75,12 +74,13 @@
   (define (subst-in-aset subst aset)
     (cases assumption-set aset
       (empty-aset () aset)
-      (extend-aset (bvar btype saved-aset)
-        (extend-aset bvar (subst-in-type subst btype) (subst-in-aset subst saved-aset)))))
-
-  ; Assumption: arg-type and return-type are concrete
-  (define (handle-unary arg-type return-type exp aset)
-    (handle-call (list arg-type) return-type (list exp) aset))
+      (extend-aset (bvar btypescheme saved-aset)
+        (cases type-scheme btypescheme
+          (a-type-scheme (quantified-ids quantified-type)
+            (extend-aset
+              bvar
+              (a-type-scheme quantified-ids (subst-in-type subst quantified-type))
+              (subst-in-aset subst saved-aset)))))))
 
   ; Assumption: arg-types and return-type are concrete
   (define (handle-call/arrow arr args aset)
@@ -120,6 +120,11 @@
         (subst-in-type result-subst return-type)
         result-subst)))
 
+  (define (instantiate tscheme)
+    (cases type-scheme tscheme
+      (a-type-scheme (quantified-ids quantified-type)
+        quantified-type)))
+
   (define (infer-exp exp aset)
     (cases expression exp
       (const-exp (num)
@@ -150,16 +155,17 @@
 
       (proc-exp (bvar body)
         (let* ((arg-type (get-fresh-typevar))
-               (body-answer (infer-exp body (extend-aset bvar arg-type aset))) ; bvar should be removed, but it's "overriden" so maybe it's ok
+               (body-answer (infer-exp body (extend-aset bvar (a-type-scheme '() arg-type) aset))) ; bvar should be removed, but it's "overriden" so maybe it's ok
                (body-subst (answer->subst body-answer)))
           (an-answer
             (subst-in-type body-subst (arrow-type arg-type (answer->type body-answer)))
             body-subst)))
 
       (var-exp (var)
-        (an-answer
-          (apply-aset aset var)
-          (empty-subst)))
+        (let* ((var-scheme (apply-aset aset var)))
+          (an-answer
+            (instantiate var-scheme)
+            (empty-subst))))
 
       (call-exp (rator rands)
         (let* ((rator-answer (infer-exp rator aset))
