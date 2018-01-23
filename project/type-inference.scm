@@ -171,6 +171,23 @@
             (answer->type handle-call-answer)
             (merge-subst (answer->subst rator-answer) (answer->subst handle-call-answer)))))
 
+      (begin-exp (exp1 exps)
+        (let ((result (foldl
+                        (lambda (cexp res)
+                          (let* ((current-subst (car res))
+                                 (current-aset (cadr res))
+                                 (cexp-answer (infer-exp cexp current-aset))
+                                 (final-subst (merge-subst current-subst (answer->subst cexp-answer))))
+                            (list
+                              final-subst
+                              (subst-in-aset final-subst current-aset)
+                              (answer->type cexp-answer))))
+                        (list (empty-subst) aset 'no-type)
+                        (cons exp1 exps))))
+          (an-answer
+            (caddr result)
+            (car result))))
+
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
 
       ))

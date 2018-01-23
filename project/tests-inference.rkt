@@ -46,6 +46,16 @@
       #rx"No binding"
       (runner-d "x"))
 
+    (test-equal?
+      "simple begin"
+      (runner "begin 42 end")
+      "int")
+
+    (test-equal?
+      "simple begin 2"
+      (runner "begin (zero? 42); 17 end")
+      "int")
+
     ;;; Primitives
 
     (test-equal?
