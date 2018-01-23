@@ -1,6 +1,6 @@
 (module prettyprinter (lib "eopl.ss" "eopl")
 
-  (require "data-structures.scm")
+  (require "data-structures.rkt")
   (require "lang.scm")
   (require (only-in racket/base
                     format))

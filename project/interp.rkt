@@ -3,7 +3,7 @@
 (require (only-in racket/base
                   foldl))
 (require "lang.scm")
-(require "data-structures.scm")
+(require "data-structures.rkt")
 (require "environments.scm")
 (require "store.scm")
 

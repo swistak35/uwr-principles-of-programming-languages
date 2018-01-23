@@ -1,6 +1,6 @@
 (module environments (lib "eopl.ss" "eopl") 
   
-  (require "data-structures.scm")
+  (require "data-structures.rkt")
   (provide empty-env extend-env apply-env)
 
 ;;;;;;;;;;;;;;;; environment constructors and observers ;;;;;;;;;;;;;;;;

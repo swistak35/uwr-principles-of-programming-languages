@@ -1,7 +1,7 @@
 #lang eopl
 
 (require rackunit)
-(require "data-structures.scm")
+(require "data-structures.rkt")
 (require "lang.scm")
 (require "interp.rkt")
 
