@@ -84,7 +84,7 @@
 
     (test-exn
       "call with wrong argument"
-      #rx"Substitution"
+      #rx"Unification"
       (runner-d "(proc(y) -(42,y) zero?(42))"))
 
     ))

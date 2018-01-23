@@ -17,6 +17,12 @@
       (eopl:error 'extend-subst! "Substitution ~s to ~s can't be added because already present ~s" varid stype search-result)
       (extend-subst varid stype saved-subst))))
 
+(define (merge-subst subst1 subst2)
+  (cases substitution subst2 ; it's a weird (reverse) order, but it shouldn't matter
+    (empty-subst () subst1)
+    (extend-subst (id stype saved-subst)
+      (merge-subst (extend-subst! id stype subst1) saved-subst))))
+
 (define (find-subst subst search-id)
   (cases substitution subst
     (empty-subst () #f)
