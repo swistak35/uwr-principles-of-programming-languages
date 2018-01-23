@@ -12,14 +12,7 @@
   (require "environments.scm")
   (require "store.scm")
   
-  (provide value-of-program value-of instrument-let instrument-newref)
-
-;;;;;;;;;;;;;;;; switches for instrument-let ;;;;;;;;;;;;;;;;
-
-  (define instrument-let (make-parameter #f))
-
-  ;; say (instrument-let #t) to turn instrumentation on.
-  ;;     (instrument-let #f) to turn it off again.
+  (provide value-of-program value-of instrument-newref)
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
