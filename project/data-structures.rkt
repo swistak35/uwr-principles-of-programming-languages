@@ -2,7 +2,7 @@
 
 (require (only-in "lang.rkt"
                   expression?))
-(require (only-in "store.scm"
+(require (only-in "store.rkt"
                   reference?))
 (require (only-in racket/base
                   format))

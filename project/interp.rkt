@@ -5,9 +5,9 @@
 (require "lang.rkt")
 (require "data-structures.rkt")
 (require "environments.rkt")
-(require "store.scm")
+(require "store.rkt")
 
-(provide value-of-program value-of instrument-newref)
+(provide value-of-program value-of)
 
 ;;; Initial environment when running a program
 
