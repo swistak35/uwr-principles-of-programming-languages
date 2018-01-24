@@ -156,4 +156,39 @@
       `(
         (1 ,(int-type))))
 
+    (test-equal?
+      "int list and var"
+      (runner
+        (an-equality (list-type (int-type)) (var-type 1)))
+      `(
+        (1 ,(list-type (int-type)))))
+
+    (test-equal?
+      "var and int list"
+      (runner
+        (an-equality (var-type 1) (list-type (int-type))))
+      `(
+        (1 ,(list-type (int-type)))))
+
+    (test-equal?
+      "var list and int list"
+      (runner
+        (an-equality (list-type (var-type 1)) (list-type (int-type))))
+      `(
+        (1 ,(int-type))))
+
+    (test-equal?
+      "int list and var list"
+      (runner
+        (an-equality (list-type (int-type)) (list-type (var-type 1))))
+      `(
+        (1 ,(int-type))))
+
+    (test-equal?
+      "int list list and var list"
+      (runner
+        (an-equality (list-type (list-type (int-type))) (list-type (var-type 1))))
+      `(
+        (1 ,(list-type (int-type)))))
+
   ))

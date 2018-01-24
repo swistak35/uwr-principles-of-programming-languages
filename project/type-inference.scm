@@ -2,11 +2,15 @@
 
   (require "lang.rkt")
   (require (only-in racket/base
-                    foldl))
+                    foldl printf))
   (require "type-data-structures.rkt")
   (require "unification.rkt")
+  (require "prettyprinter.scm")
+  (require "type-prettyprint.rkt")
   
   (provide (all-defined-out))
+
+  (define instrument-infer #f)
 
   (define-datatype assumption-set assumption-set?
     (empty-aset)
@@ -193,6 +197,31 @@
           (an-answer
             (caddr result)
             (car result))))
+
+      (list-exp (exps)
+        (let* ((elem-vartype (get-fresh-typevar))
+               (result (foldl
+                         (lambda (cexp res)
+                           (let* ((current-subst (car res))
+                                  (current-aset (cadr res))
+                                  (cexp-answer (infer-exp cexp current-aset))
+                                  (cexp-final-subst (merge-subst current-subst (answer->subst cexp-answer)))
+                                  (final-subst (merge-subst
+                                                 cexp-final-subst
+                                                 (unify/one
+                                                   (subst-in-type cexp-final-subst elem-vartype)
+                                                   (answer->type cexp-answer)))))
+                             (list
+                               final-subst
+                               (subst-in-aset final-subst current-aset))))
+                         (list (empty-subst) aset)
+                         exps))
+               (final-subst (car result))
+               (final-type (subst-in-type final-subst (list-type elem-vartype))))
+          (when instrument-infer
+            (printf
+              "Inferred the type of:  ~a\n               to be:  ~a\n   with substitution:  ~a\n\n" (pretty-print exp) (prettyprint-type final-type) (prettyprint-subst final-subst)))
+          (an-answer final-type final-subst)))
 
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
 

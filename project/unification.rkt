@@ -2,6 +2,13 @@
 
 (require "type-data-structures.rkt")
 
+; for prettyprinter
+(require (only-in racket/base
+                  format))
+(require (only-in racket/string
+                  string-join))
+(require "type-prettyprint.rkt")
+
 (provide (all-defined-out))
 
 (define-datatype substitution substitution?
@@ -18,10 +25,15 @@
       (extend-subst varid stype saved-subst))))
 
 (define (merge-subst subst1 subst2)
+  (dumb-merge-subst
+    (subst-in-substs subst2 subst1)
+    subst2))
+
+(define (dumb-merge-subst subst1 subst2)
   (cases substitution subst2 ; it's a weird (reverse) order, but it shouldn't matter
     (empty-subst () subst1)
     (extend-subst (id stype saved-subst)
-      (merge-subst (extend-subst! id stype subst1) saved-subst))))
+      (dumb-merge-subst (extend-subst! id stype subst1) saved-subst))))
 
 (define (find-subst subst search-id)
   (cases substitution subst
@@ -62,6 +74,9 @@
 (define (unify/var-arrow equalities saved-subst id arrow)
   (unify equalities (extend-subst! id arrow saved-subst)))
 
+(define (unify/var-list equalities saved-subst id tlist)
+  (unify equalities (extend-subst! id tlist saved-subst)))
+
 (define (unify/arrow-arrow equalities saved-subst left1 right1 left2 right2)
   (unify
     (append
@@ -70,6 +85,10 @@
         (an-equality right1 right2))
       equalities)
     saved-subst))
+
+(define (unify/list-list equalities saved-subst elem1 elem2)
+  (unify
+    (cons (an-equality elem1 elem2) equalities) saved-subst))
 
 (define (unify/simple equalities saved-subst left right)
   (if (equal? left right)
@@ -93,6 +112,8 @@
               (unify/var-var (cdr equalities) subst id1 id2))
             (arrow-type (left right)
               (unify/var-arrow (cdr equalities) subst id1 cur-eq-right))
+            (list-type (elem1)
+              (unify/var-list (cdr equalities) subst id1 cur-eq-right))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (int-type ()
           (cases type cur-eq-right
@@ -111,6 +132,13 @@
             (arrow-type (left2 right2)
               (unify/arrow-arrow (cdr equalities) subst left right left2 right2))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
+        (list-type (elem1)
+          (cases type cur-eq-right
+            (var-type (id1)
+              (unify/var-list (cdr equalities) subst id1 cur-eq-left))
+            (list-type (elem2)
+              (unify/list-list (cdr equalities) subst elem1 elem2))
+            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))))
 
 (define (subst-in-type subst stype)
@@ -123,7 +151,34 @@
       (arrow-type (subst-in-type subst left) (subst-in-type subst right)))
     (var-type (id)
       (apply-subst subst id))
-    (else eopl:error 'subst-in-type "Unhandled type ~s" stype)))
+    (list-type (elem)
+      (list-type (subst-in-type subst elem)))
+    (tuple-type (types)
+      (tuple-type (map (lambda (t) (subst-in-type subst t)) types)))
+    (ref-type (elem)
+      (ref-type (subst-in-type subst elem)))))
+
+(define (subst-in-substs subst substituted)
+  (cases substitution substituted
+    (empty-subst () (empty-subst))
+    (extend-subst (id stype saved-subst)
+      (extend-subst id (subst-in-type subst stype) (subst-in-substs subst saved-subst)))))
+
+(define (prettyprint-subst subst)
+  (format
+    "{~a}"
+    (string-join
+      (map
+        (lambda (subst-elem) (format "~a/~a" (car subst-elem) (prettyprint-type (cadr subst-elem))))
+        (subst->list subst))
+      "; ")))
+
+(define (subst->list subst)
+  (cases substitution subst
+    (empty-subst () '())
+    (extend-subst (id stype saved-subst)
+      (cons (list id stype) (subst->list saved-subst)))))
 
 ; (require trace)
 ; (trace unify)
+; (trace merge-subst)

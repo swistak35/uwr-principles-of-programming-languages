@@ -56,6 +56,56 @@
       (runner "begin (zero? 42); 17 end")
       "int")
 
+    (test-equal?
+      "empty list"
+      (runner "[]")
+      "'1 list")
+
+    (test-equal?
+      "simple list"
+      (runner "[42]")
+      "int list")
+
+    (test-equal?
+      "list of ints"
+      (runner "[42, 17]")
+      "int list")
+
+    (test-equal?
+      "list of bools 1"
+      (runner "[(zero? 0), (zero? 42)]")
+      "bool list")
+
+    (test-exn
+      "heterogenous list"
+      #rx"Unification"
+      (runner-d "[42, (zero? 42)]"))
+
+    (test-equal?
+      "list of lists"
+      (runner "[[42], [17]]")
+      "int list list")
+
+    (test-equal?
+      "list of lists"
+      (runner "[[], [17]]")
+      "int list list")
+
+    (test-equal?
+      "list of lists"
+      (runner "[[17], []]")
+      "int list list")
+
+    (test-equal?
+      "list of lists of lists"
+      (runner "[[[42]], [[17]]]")
+      "int list list list")
+
+    (test-exn
+      "heterogenous list of lists"
+      #rx"Unification"
+      (runner-d "[[42], [(zero? 17)]]"))
+
     ;;; Primitives
 
     (test-equal?
