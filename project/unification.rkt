@@ -62,20 +62,34 @@
   (cases equality eq
     (an-equality (eq-left eq-right) eq-right)))
 
-(define (unify/var-int equalities saved-subst id)
-  (unify equalities (extend-subst! id (int-type) saved-subst)))
+(define (subst-in-equalities subst equalities)
+  (map
+    (lambda (eq)
+      (an-equality
+        (subst-in-type subst (eq->left eq))
+        (subst-in-type subst (eq->right eq))))
+    equalities))
 
-(define (unify/var-bool equalities saved-subst id)
-  (unify equalities (extend-subst! id (bool-type) saved-subst)))
+(define (unify/var-sth equalities saved-subst id sth)
+  (let ((new-subst (merge-subst saved-subst (extend-subst id sth (empty-subst)))))
+    (unify (subst-in-equalities new-subst equalities) new-subst)))
+; (define (unify/var-int equalities saved-subst id)
+;   (unify equalities (merge-subst saved-subst (extend-subst id (int-type) (empty-subst)))))
 
-(define (unify/var-var equalities saved-subst id1 id2)
-  (unify equalities (extend-subst! id1 (var-type id2) saved-subst)))
+; (define (unify/var-bool equalities saved-subst id)
+;   (unify equalities (merge-subst saved-subst (extend-subst id (bool-type) (empty-subst)))))
 
-(define (unify/var-arrow equalities saved-subst id arrow)
-  (unify equalities (extend-subst! id arrow saved-subst)))
+; (define (unify/var-var equalities saved-subst id1 id2)
+;   (unify equalities (merge-subst saved-subst (extend-subst id1 (var-type id2) (empty-subst)))))
 
-(define (unify/var-list equalities saved-subst id tlist)
-  (unify equalities (extend-subst! id tlist saved-subst)))
+; (define (unify/var-arrow equalities saved-subst id arrow)
+;   (unify equalities (merge-subst saved-subst (extend-subst id arrow (empty-subst)))))
+
+; (define (unify/var-list equalities saved-subst id tlist)
+;   (unify equalities (merge-subst saved-subst (extend-subst id tlist (empty-subst)))))
+
+; (define (unify/var-tuple equalities saved-subst id ttuple)
+;   (unify equalities (merge-subst saved-subst (extend-subst id ttuple (empty-subst)))))
 
 (define (unify/arrow-arrow equalities saved-subst left1 right1 left2 right2)
   (unify
@@ -89,6 +103,13 @@
 (define (unify/list-list equalities saved-subst elem1 elem2)
   (unify
     (cons (an-equality elem1 elem2) equalities) saved-subst))
+
+(define (unify/tuple-tuple equalities saved-subst elems1 elems2)
+  (unify
+    (append
+      (map (lambda (elem1 elem2) (an-equality elem1 elem2)) elems1 elems2)
+      equalities)
+    saved-subst))
 
 (define (unify/simple equalities saved-subst left right)
   (if (equal? left right)
@@ -105,39 +126,48 @@
         (var-type (id1)
           (cases type cur-eq-right
             (int-type ()
-              (unify/var-int (cdr equalities) subst id1))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
             (bool-type ()
-              (unify/var-bool (cdr equalities) subst id1))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
             (var-type (id2)
-              (unify/var-var (cdr equalities) subst id1 id2))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
             (arrow-type (left right)
-              (unify/var-arrow (cdr equalities) subst id1 cur-eq-right))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
             (list-type (elem1)
-              (unify/var-list (cdr equalities) subst id1 cur-eq-right))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
+            (tuple-type (elems1)
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (int-type ()
           (cases type cur-eq-right
             (var-type (id1)
-              (unify/var-int (cdr equalities) subst id1))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-left))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (bool-type ()
           (cases type cur-eq-right
             (var-type (id1)
-              (unify/var-bool (cdr equalities) subst id1))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-left))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (arrow-type (left right)
           (cases type cur-eq-right
             (var-type (id1)
-              (unify/var-arrow (cdr equalities) subst id1 cur-eq-left))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-left))
             (arrow-type (left2 right2)
               (unify/arrow-arrow (cdr equalities) subst left right left2 right2))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (list-type (elem1)
           (cases type cur-eq-right
             (var-type (id1)
-              (unify/var-list (cdr equalities) subst id1 cur-eq-left))
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-left))
             (list-type (elem2)
               (unify/list-list (cdr equalities) subst elem1 elem2))
+            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
+        (tuple-type (elems1)
+          (cases type cur-eq-right
+            (var-type (id2)
+              (unify/var-sth (cdr equalities) subst id2 cur-eq-left))
+            (tuple-type (elems2)
+              (unify/tuple-tuple (cdr equalities) subst elems1 elems2))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
         (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))))
 

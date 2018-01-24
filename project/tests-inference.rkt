@@ -207,8 +207,13 @@
 
     (test-exn
       "call to something which is not a function"
-      #rx"Call to something which is not a function"
+      #rx"Unification"
       (runner-d "(42 42)"))
+
+    (test-equal?
+      "using polymorphic primitive"
+      (runner "(car [1])")
+      "int")
 
     (test-equal?
       "example not using type scheme of primitive"
@@ -219,6 +224,16 @@
       "example using type scheme of primitive"
       (runner "begin (car [(zero? 1)]); (car [42]) end")
       "int")
+
+    (test-equal?
+      "example using type scheme of procedure"
+      (runner "let double = proc(f) proc(x) (f (f x)) in ((double cdr) [17, 42])")
+      "int list")
+
+    (test-equal?
+      "example polymoprhic using of procedure"
+      (runner "let double = proc(f) proc(x) (f (f x)) in begin ((double cdr) [17, 42]); ((double cdr) [(zero? 17)]) end")
+      "bool list")
 
     ; (test-equal?
     ;   "primitive diff"

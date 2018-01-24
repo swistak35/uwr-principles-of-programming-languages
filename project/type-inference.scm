@@ -3,6 +3,8 @@
   (require "lang.rkt")
   (require (only-in racket/base
                     foldl printf))
+  (require (only-in racket/list
+                    append* remove-duplicates))
   (require "type-data-structures.rkt")
   (require "unification.rkt")
   (require "prettyprinter.scm")
@@ -52,6 +54,9 @@
       (list 'car (a-type-scheme (list 0) (arrow-type
                                            (list-type (var-type 0))
                                            (var-type 0))))
+      (list 'cdr (a-type-scheme (list 0) (arrow-type
+                                           (list-type (var-type 0))
+                                           (list-type (var-type 0)))))
       ))
 
   (define (initial-aset)
@@ -89,43 +94,31 @@
               (a-type-scheme quantified-ids (subst-in-type subst quantified-type))
               (subst-in-aset subst saved-aset)))))))
 
-  ; Assumption: arg-types and return-type are concrete
-  (define (handle-call/arrow arr args aset)
-    (cases type arr
-      (arrow-type (left right)
-        (cases type left
-          (tuple-type (arg-types)
-            (handle-call arg-types right args aset))
-          (else
-            (handle-call (list left) right args aset))))
-      (else (eopl:error 'infer "Call to something which is not a function ~s" arr))))
-
-  (define (handle-call arg-types return-type args aset)
-    ; There should be an error if lengths of arg-types and args are not equal
-    ; It doesn't handle passing 0 arguments either
-    (let* ((args-type (if (= (length arg-types) 1)
-                        (car arg-types)
-                        (tuple-type arg-types)))
-           (fun-type (arrow-type args-type return-type))
-           (arg-result (foldl
-                         (lambda (arg-type arg result)
-                           (let* ((current-subst (car result))
-                                  (current-aset (cadr result))
-                                  (substituted-aset (subst-in-aset current-subst current-aset))
-                                  (arg-answer (infer-exp arg substituted-aset))
-                                  (next-subst
-                                    (merge-subst
-                                      (merge-subst current-subst (answer->subst arg-answer))
-                                      (unify/one arg-type (answer->type arg-answer))))
-                                  (next-aset (subst-in-aset next-subst current-aset)))
-                             (list next-subst next-aset)))
-                         (list (empty-subst) aset)
-                         arg-types
-                         args))
-           (result-subst (car arg-result)))
-      (an-answer
-        (subst-in-type result-subst return-type)
-        result-subst)))
+  (define (handle-call/maybe-arrow proclike-type args aset)
+    (let* ((args-result (foldl
+                          (lambda (arg result)
+                            (let* ((current-subst (car result))
+                                   (current-aset (cadr result))
+                                   (current-arg-types (caddr result))
+                                   (arg-answer (infer-exp arg current-aset))
+                                   (next-subst (merge-subst current-subst (answer->subst arg-answer)))
+                                   (next-aset (subst-in-aset next-subst current-aset))
+                                   (next-arg-types (append current-arg-types (list (answer->type arg-answer)))))
+                              (list next-subst next-aset next-arg-types)))
+                          (list (empty-subst) aset (list))
+                          args))
+           (result-subst (car args-result))
+           (raw-arg-types (caddr args-result))
+           (arg-type (if (= 1 (length raw-arg-types))
+                       (car raw-arg-types)
+                       (tuple-type raw-arg-types)))
+           (result-typevar (get-fresh-typevar))
+           (unify-subst (unify/one
+                          (arrow-type arg-type result-typevar)
+                          (subst-in-type result-subst proclike-type)))
+           (final-subst (merge-subst result-subst unify-subst))
+           (final-type (subst-in-type final-subst result-typevar)))
+      (an-answer final-type final-subst)))
 
   (define (replace-typevars typ mapping)
     (cases type typ
@@ -198,13 +191,14 @@
 
       (call-exp (rator rands)
         (let* ((rator-answer (infer-exp rator aset))
-               (handle-call-answer (handle-call/arrow
+               (handle-call-answer (handle-call/maybe-arrow
                                      (answer->type rator-answer)
                                      rands
-                                     (subst-in-aset (answer->subst rator-answer) aset))))
-          (an-answer
-            (answer->type handle-call-answer)
-            (merge-subst (answer->subst rator-answer) (answer->subst handle-call-answer)))))
+                                     (subst-in-aset (answer->subst rator-answer) aset)))
+               (final-type (answer->type handle-call-answer))
+               (final-subst (merge-subst (answer->subst rator-answer) (answer->subst handle-call-answer))))
+          (print-instrument-infer exp final-type final-subst)
+          (an-answer final-type final-subst)))
 
       (begin-exp (exp1 exps)
         (let ((result (foldl
@@ -243,13 +237,50 @@
                          exps))
                (final-subst (car result))
                (final-type (subst-in-type final-subst (list-type elem-vartype))))
-          (when instrument-infer
-            (printf
-              "Inferred the type of:  ~a\n               to be:  ~a\n   with substitution:  ~a\n\n" (pretty-print exp) (prettyprint-type final-type) (prettyprint-subst final-subst)))
+          (print-instrument-infer exp final-type final-subst)
+          (an-answer final-type final-subst)))
+
+      (let-exp (var exp1 body)
+        (let* ((exp1-answer (infer-exp exp1 aset))
+               (tscheme (generalize (answer->type exp1-answer)))
+               (new-aset (extend-aset var tscheme (subst-in-aset (answer->subst exp1-answer) aset)))
+               (body-answer (infer-exp body new-aset))
+               (final-subst (merge-subst (answer->subst exp1-answer) (answer->subst body-answer)))
+               (final-type (answer->type body-answer)))
           (an-answer final-type final-subst)))
 
       (else (eopl:error 'infer "Unhandled expression ~s" exp))
 
       ))
+
+  (define (free-var-ids-of-type typ)
+    (remove-duplicates (free-var-ids-of-type/aux typ)))
+  (define (free-var-ids-of-type/aux typ) ; uniq!
+    (cases type typ
+      (arrow-type (left right)
+        (append (free-var-ids-of-type/aux left) (free-var-ids-of-type/aux right)))
+      (list-type (elem)
+        (free-var-ids-of-type/aux elem))
+      (ref-type (elem)
+        (free-var-ids-of-type/aux elem))
+      (tuple-type (elems)
+        (append* (map free-var-ids-of-type/aux elems)))
+      (int-type () '())
+      (bool-type () '())
+      (var-type (id) (list id))))
+
+  ; this should be filtered by assumption-set
+  (define (generalize typ)
+    (a-type-scheme
+      (free-var-ids-of-type typ)
+      typ))
+
+  (define (print-instrument-infer exp typ subst)
+    (when instrument-infer
+      (printf
+        "Inferred the type of:  ~a\n               to be:  ~a\n   with substitution:  ~a\n\n"
+        (pretty-print exp)
+        (prettyprint-type typ)
+        (prettyprint-subst subst))))
 
   )
