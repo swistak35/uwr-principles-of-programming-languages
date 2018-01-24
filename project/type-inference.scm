@@ -49,6 +49,9 @@
       (list 'diff (a-type-scheme '() (arrow-type
                                        (tuple-type (list (int-type) (int-type)))
                                        (int-type))))
+      (list 'car (a-type-scheme (list 0) (arrow-type
+                                           (list-type (var-type 0))
+                                           (var-type 0))))
       ))
 
   (define (initial-aset)
@@ -124,10 +127,32 @@
         (subst-in-type result-subst return-type)
         result-subst)))
 
+  (define (replace-typevars typ mapping)
+    (cases type typ
+      (var-type (id)
+        (if (assoc id mapping)
+          (cadr (assoc id mapping))
+          (var-type id)))
+      (int-type () (int-type))
+      (bool-type () (bool-type))
+      (arrow-type (left right)
+        (arrow-type
+          (replace-typevars left mapping)
+          (replace-typevars right mapping)))
+      (list-type (elem)
+        (list-type (replace-typevars elem mapping)))
+      (ref-type (elem)
+        (ref-type (replace-typevars elem mapping)))
+      (tuple-type (elems)
+        (tuple-type (map (lambda (t) (replace-typevars t mapping)) elems)))
+      ))
+
   (define (instantiate tscheme)
     (cases type-scheme tscheme
       (a-type-scheme (quantified-ids quantified-type)
-        quantified-type)))
+        (let* ((fresh-typevars (map (lambda (id) (get-fresh-typevar)) quantified-ids))
+               (mapping (map list quantified-ids fresh-typevars)))
+          (replace-typevars quantified-type mapping)))))
 
   (define (infer-exp exp aset)
     (cases expression exp

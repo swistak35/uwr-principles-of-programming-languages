@@ -210,6 +210,16 @@
       #rx"Call to something which is not a function"
       (runner-d "(42 42)"))
 
+    (test-equal?
+      "example not using type scheme of primitive"
+      (runner "begin (car [1]); (car [2]) end")
+      "int")
+
+    (test-equal?
+      "example using type scheme of primitive"
+      (runner "begin (car [(zero? 1)]); (car [42]) end")
+      "int")
+
     ; (test-equal?
     ;   "primitive diff"
     ;   (runner "(diff 42 20)")
