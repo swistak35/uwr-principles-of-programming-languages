@@ -9,7 +9,7 @@
                   set-subtract))
 (require "type-data-structures.rkt")
 (require "unification.rkt")
-(require "prettyprinter.scm")
+(require "prettyprint-exp.rkt")
 (require "type-prettyprint.rkt")
 
 (provide (all-defined-out))

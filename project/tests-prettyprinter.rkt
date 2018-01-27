@@ -2,7 +2,7 @@
 
 (require rackunit)
 (require "lang.rkt")
-(require "prettyprinter.scm")
+(require "prettyprint-exp.rkt")
 
 (provide prettyprinter-tests)
 
