@@ -416,4 +416,11 @@
               in (map increment [-1,0,1,2])")
               '(0 1 2 3))
 
+    (test-exn
+      "example when we need to constraint variable set"
+      #rx"expval-extractors"
+      (runner-d "let h1 = proc(x) if x then (zero? 0) else (zero? 42)
+                   in let h2 = proc(f) proc(x) let g = f in (g 0)
+                       in ((h2 h1) (zero? 0))"))
+
     ))

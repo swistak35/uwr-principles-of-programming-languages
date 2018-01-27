@@ -235,6 +235,17 @@
       (runner "let double = proc(f) proc(x) (f (f x)) in begin ((double cdr) [17, 42]); ((double cdr) [(zero? 17)]) end")
       "bool list")
 
+    (test-equal?
+      "example when we need to constrain variable set, simple"
+      (runner "proc(f) proc(x) let g = f in (g x)")
+      "('2 -> '3) -> '2 -> '3"
+      )
+
+    (test-exn
+      "example when we need to constraint variable set"
+      #rx"Unification"
+      (runner-d "((proc(f) proc(x) let g = f in (g 0)  proc(x) if x then (zero? 0) else (zero? 42)) (zero? 0))"))
+
     ; (test-equal?
     ;   "primitive diff"
     ;   (runner "(diff 42 20)")

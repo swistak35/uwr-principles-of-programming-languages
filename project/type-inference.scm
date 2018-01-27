@@ -5,6 +5,8 @@
                     foldl printf))
   (require (only-in racket/list
                     append* remove-duplicates))
+  (require (only-in racket/set
+                    set-subtract))
   (require "type-data-structures.rkt")
   (require "unification.rkt")
   (require "prettyprinter.scm")
@@ -242,8 +244,9 @@
 
       (let-exp (var exp1 body)
         (let* ((exp1-answer (infer-exp exp1 aset))
-               (tscheme (generalize (answer->type exp1-answer)))
-               (new-aset (extend-aset var tscheme (subst-in-aset (answer->subst exp1-answer) aset)))
+               (substituted-aset (subst-in-aset (answer->subst exp1-answer) aset))
+               (tscheme (generalize (answer->type exp1-answer) substituted-aset))
+               (new-aset (extend-aset var tscheme substituted-aset))
                (body-answer (infer-exp body new-aset))
                (final-subst (merge-subst (answer->subst exp1-answer) (answer->subst body-answer)))
                (final-type (answer->type body-answer)))
@@ -255,7 +258,7 @@
 
   (define (free-var-ids-of-type typ)
     (remove-duplicates (free-var-ids-of-type/aux typ)))
-  (define (free-var-ids-of-type/aux typ) ; uniq!
+  (define (free-var-ids-of-type/aux typ)
     (cases type typ
       (arrow-type (left right)
         (append (free-var-ids-of-type/aux left) (free-var-ids-of-type/aux right)))
@@ -269,10 +272,28 @@
       (bool-type () '())
       (var-type (id) (list id))))
 
+  (define (free-var-ids-in-aset aset)
+    (remove-duplicates (free-var-ids-in-aset/aux aset)))
+  ; Not optimal, but trivial to optimize
+  (define (free-var-ids-in-aset/aux aset)
+    (cases assumption-set aset
+      (empty-aset () '())
+      (extend-aset (bvar btype saved-aset)
+        (append (free-var-ids-in-tscheme btype) (free-var-ids-in-aset/aux saved-aset)))))
+
+  (define (free-var-ids-in-tscheme tscheme)
+    (cases type-scheme tscheme
+      (a-type-scheme (quantified-ids quantified-type)
+        (set-subtract
+          (free-var-ids-of-type quantified-type)
+          quantified-ids))))
+
   ; this should be filtered by assumption-set
-  (define (generalize typ)
+  (define (generalize typ aset)
     (a-type-scheme
-      (free-var-ids-of-type typ)
+      (set-subtract
+        (free-var-ids-of-type typ)
+        (free-var-ids-in-aset aset))
       typ))
 
   (define (print-instrument-infer exp typ subst)
