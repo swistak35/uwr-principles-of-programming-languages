@@ -151,6 +151,7 @@
 
 (define (infer-exp exp aset)
   (cases expression exp
+
     (const-exp (num)
       (an-answer
         (int-type)
@@ -158,29 +159,29 @@
 
     (if-exp (exp1 exp2 exp3)
       (let* ((exp1-answer (infer-exp exp1 aset))
-              (exp1-subst (answer->subst exp1-answer))
-              (exp1-type (answer->type exp1-answer))
-              (exp2-aset-subst (merge-subst exp1-subst (unify/one (bool-type) exp1-type)))
+             (exp1-subst (answer->subst exp1-answer))
+             (exp1-type (answer->type exp1-answer))
+             (exp2-aset-subst (merge-subst exp1-subst (unify/one (bool-type) exp1-type)))
 
-              (exp2-aset (subst-in-aset exp2-aset-subst aset))
-              (exp2-answer (infer-exp exp2 exp2-aset))
-              (exp2-subst (answer->subst exp2-answer))
-              (exp2-type (answer->type exp2-answer))
-              (exp3-aset-subst (merge-subst exp2-aset-subst exp2-subst))
+             (exp2-aset (subst-in-aset exp2-aset-subst aset))
+             (exp2-answer (infer-exp exp2 exp2-aset))
+             (exp2-subst (answer->subst exp2-answer))
+             (exp2-type (answer->type exp2-answer))
+             (exp3-aset-subst (merge-subst exp2-aset-subst exp2-subst))
 
-              (exp3-aset (subst-in-aset exp3-aset-subst aset))
-              (exp3-answer (infer-exp exp3 exp3-aset))
-              (exp3-subst (answer->subst exp3-answer))
-              (exp3-type (answer->type exp3-answer))
-              (final-subst (merge-subst (merge-subst exp3-aset-subst exp3-subst) (unify/one exp2-type exp3-type))))
+             (exp3-aset (subst-in-aset exp3-aset-subst aset))
+             (exp3-answer (infer-exp exp3 exp3-aset))
+             (exp3-subst (answer->subst exp3-answer))
+             (exp3-type (answer->type exp3-answer))
+             (final-subst (merge-subst (merge-subst exp3-aset-subst exp3-subst) (unify/one exp2-type exp3-type))))
         (an-answer
           (subst-in-type final-subst exp2-type)
           final-subst)))
 
     (proc-exp (bvar body)
       (let* ((arg-type (get-fresh-typevar))
-              (body-answer (infer-exp body (extend-aset bvar (a-type-scheme '() arg-type) aset))) ; bvar should be removed, but it's "overriden" so maybe it's ok
-              (body-subst (answer->subst body-answer)))
+             (body-answer (infer-exp body (extend-aset bvar (a-type-scheme '() arg-type) aset)))
+             (body-subst (answer->subst body-answer)))
         (an-answer
           (subst-in-type body-subst (arrow-type arg-type (answer->type body-answer)))
           body-subst)))
@@ -206,9 +207,9 @@
       (let ((result (foldl
                       (lambda (cexp res)
                         (let* ((current-subst (car res))
-                                (current-aset (cadr res))
-                                (cexp-answer (infer-exp cexp current-aset))
-                                (final-subst (merge-subst current-subst (answer->subst cexp-answer))))
+                               (current-aset (cadr res))
+                               (cexp-answer (infer-exp cexp current-aset))
+                               (final-subst (merge-subst current-subst (answer->subst cexp-answer))))
                           (list
                             final-subst
                             (subst-in-aset final-subst current-aset)
@@ -224,10 +225,10 @@
               (result (foldl
                         (lambda (cexp res)
                           (let* ((current-subst (car res))
-                                (current-aset (cadr res))
-                                (cexp-answer (infer-exp cexp current-aset))
-                                (cexp-final-subst (merge-subst current-subst (answer->subst cexp-answer)))
-                                (final-subst (merge-subst
+                                 (current-aset (cadr res))
+                                 (cexp-answer (infer-exp cexp current-aset))
+                                 (cexp-final-subst (merge-subst current-subst (answer->subst cexp-answer)))
+                                 (final-subst (merge-subst
                                                 cexp-final-subst
                                                 (unify/one
                                                   (subst-in-type cexp-final-subst elem-vartype)
@@ -244,12 +245,12 @@
 
     (let-exp (var exp1 body)
       (let* ((exp1-answer (infer-exp exp1 aset))
-              (substituted-aset (subst-in-aset (answer->subst exp1-answer) aset))
-              (tscheme (generalize (answer->type exp1-answer) substituted-aset))
-              (new-aset (extend-aset var tscheme substituted-aset))
-              (body-answer (infer-exp body new-aset))
-              (final-subst (merge-subst (answer->subst exp1-answer) (answer->subst body-answer)))
-              (final-type (answer->type body-answer)))
+             (substituted-aset (subst-in-aset (answer->subst exp1-answer) aset))
+             (tscheme (generalize (answer->type exp1-answer) substituted-aset))
+             (new-aset (extend-aset var tscheme substituted-aset))
+             (body-answer (infer-exp body new-aset))
+             (final-subst (merge-subst (answer->subst exp1-answer) (answer->subst body-answer)))
+             (final-type (answer->type body-answer)))
         (an-answer final-type final-subst)))
 
     (else (eopl:error 'infer "Unhandled expression ~s" exp))

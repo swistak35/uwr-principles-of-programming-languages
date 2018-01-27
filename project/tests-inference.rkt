@@ -138,15 +138,15 @@
     ;   (runner "cons")
     ;   "'1 * '1 list -> '1 list")
 
-    ; (test-equal?
-    ;   "primitive car"
-    ;   (runner "car")
-    ;   "'1 list -> '1")
+    (test-equal?
+      "primitive car"
+      (runner "car")
+      "'1 list -> '1")
 
-    ; (test-equal?
-    ;   "primitive cdr"
-    ;   (runner "cdr")
-    ;   "'1 list -> '1 list")
+    (test-equal?
+      "primitive cdr"
+      (runner "cdr")
+      "'1 list -> '1 list")
 
     ; (test-equal?
     ;   "primitive null?"
