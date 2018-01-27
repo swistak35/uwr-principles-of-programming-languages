@@ -3,7 +3,7 @@
 (require rackunit)
 (require "lang.rkt")
 (require "type-data-structures.rkt")
-(require "type-inference.scm")
+(require "inference.rkt")
 (require "type-prettyprint.rkt")
 
 (provide inference-tests)
