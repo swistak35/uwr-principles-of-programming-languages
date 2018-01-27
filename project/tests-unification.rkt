@@ -191,4 +191,18 @@
       `(
         (1 ,(list-type (int-type)))))
 
+    (test-equal?
+      "int ref and var"
+      (runner
+        (an-equality (ref-type (int-type)) (var-type 1)))
+      `(
+        (1 ,(ref-type (int-type)))))
+
+    (test-equal?
+      "var and int ref"
+      (runner
+        (an-equality (var-type 1) (ref-type (int-type))))
+      `(
+        (1 ,(ref-type (int-type)))))
+
   ))

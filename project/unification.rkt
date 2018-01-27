@@ -73,23 +73,6 @@
 (define (unify/var-sth equalities saved-subst id sth)
   (let ((new-subst (merge-subst saved-subst (extend-subst id sth (empty-subst)))))
     (unify (subst-in-equalities new-subst equalities) new-subst)))
-; (define (unify/var-int equalities saved-subst id)
-;   (unify equalities (merge-subst saved-subst (extend-subst id (int-type) (empty-subst)))))
-
-; (define (unify/var-bool equalities saved-subst id)
-;   (unify equalities (merge-subst saved-subst (extend-subst id (bool-type) (empty-subst)))))
-
-; (define (unify/var-var equalities saved-subst id1 id2)
-;   (unify equalities (merge-subst saved-subst (extend-subst id1 (var-type id2) (empty-subst)))))
-
-; (define (unify/var-arrow equalities saved-subst id arrow)
-;   (unify equalities (merge-subst saved-subst (extend-subst id arrow (empty-subst)))))
-
-; (define (unify/var-list equalities saved-subst id tlist)
-;   (unify equalities (merge-subst saved-subst (extend-subst id tlist (empty-subst)))))
-
-; (define (unify/var-tuple equalities saved-subst id ttuple)
-;   (unify equalities (merge-subst saved-subst (extend-subst id ttuple (empty-subst)))))
 
 (define (unify/arrow-arrow equalities saved-subst left1 right1 left2 right2)
   (unify
@@ -103,6 +86,9 @@
 (define (unify/list-list equalities saved-subst elem1 elem2)
   (unify
     (cons (an-equality elem1 elem2) equalities) saved-subst))
+
+(define (unify/ref-ref equalities saved-subst elem1 elem2)
+  (unify/list-list equalities saved-subst elem1 elem2))
 
 (define (unify/tuple-tuple equalities saved-subst elems1 elems2)
   (unify
@@ -124,20 +110,7 @@
            (cur-eq-right (eq->right cur-eq)))
       (cases type cur-eq-left
         (var-type (id1)
-          (cases type cur-eq-right
-            (int-type ()
-              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
-            (bool-type ()
-              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
-            (var-type (id2)
-              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
-            (arrow-type (left right)
-              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
-            (list-type (elem1)
-              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
-            (tuple-type (elems1)
-              (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
-            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
+          (unify/var-sth (cdr equalities) subst id1 cur-eq-right))
         (int-type ()
           (cases type cur-eq-right
             (var-type (id1)
@@ -169,7 +142,14 @@
             (tuple-type (elems2)
               (unify/tuple-tuple (cdr equalities) subst elems1 elems2))
             (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
-        (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))))
+        (ref-type (elem1)
+          (cases type cur-eq-right
+            (var-type (id1)
+              (unify/var-sth (cdr equalities) subst id1 cur-eq-left))
+            (ref-type (elem2)
+              (unify/ref-ref (cdr equalities) subst elem1 elem2))
+            (else (unify/simple (cdr equalities) subst cur-eq-left cur-eq-right))))
+        ))))
 
 (define (subst-in-type subst stype)
   (cases type stype
