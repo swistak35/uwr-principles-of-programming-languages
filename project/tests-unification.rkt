@@ -205,4 +205,18 @@
       `(
         (1 ,(ref-type (int-type)))))
 
+    (test-equal?
+      "int * int and var"
+      (runner
+        (an-equality (tuple-type (list (int-type) (int-type))) (var-type 1)))
+      `(
+        (1 ,(tuple-type (list (int-type) (int-type))))))
+
+    (test-equal?
+      "var and int * bool"
+      (runner
+        (an-equality (var-type 1) (tuple-type (list (int-type) (bool-type)))))
+      `(
+        (1 ,(tuple-type (list (int-type) (bool-type))))))
+
   ))
