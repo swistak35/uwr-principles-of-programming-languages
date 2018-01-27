@@ -288,7 +288,6 @@
           (free-var-ids-in-type quantified-type)
           quantified-ids))))
 
-  ; this should be filtered by assumption-set
   (define (generalize typ aset)
     (a-type-scheme
       (set-subtract
