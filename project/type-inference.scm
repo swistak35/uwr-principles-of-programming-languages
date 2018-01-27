@@ -256,18 +256,18 @@
 
       ))
 
-  (define (free-var-ids-of-type typ)
-    (remove-duplicates (free-var-ids-of-type/aux typ)))
-  (define (free-var-ids-of-type/aux typ)
+  (define (free-var-ids-in-type typ)
+    (remove-duplicates (free-var-ids-in-type/aux typ)))
+  (define (free-var-ids-in-type/aux typ)
     (cases type typ
       (arrow-type (left right)
-        (append (free-var-ids-of-type/aux left) (free-var-ids-of-type/aux right)))
+        (append (free-var-ids-in-type/aux left) (free-var-ids-in-type/aux right)))
       (list-type (elem)
-        (free-var-ids-of-type/aux elem))
+        (free-var-ids-in-type/aux elem))
       (ref-type (elem)
-        (free-var-ids-of-type/aux elem))
+        (free-var-ids-in-type/aux elem))
       (tuple-type (elems)
-        (append* (map free-var-ids-of-type/aux elems)))
+        (append* (map free-var-ids-in-type/aux elems)))
       (int-type () '())
       (bool-type () '())
       (var-type (id) (list id))))
@@ -285,14 +285,14 @@
     (cases type-scheme tscheme
       (a-type-scheme (quantified-ids quantified-type)
         (set-subtract
-          (free-var-ids-of-type quantified-type)
+          (free-var-ids-in-type quantified-type)
           quantified-ids))))
 
   ; this should be filtered by assumption-set
   (define (generalize typ aset)
     (a-type-scheme
       (set-subtract
-        (free-var-ids-of-type typ)
+        (free-var-ids-in-type typ)
         (free-var-ids-in-aset aset))
       typ))
 
