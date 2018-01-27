@@ -2,7 +2,7 @@
 
 (require rackunit)
 (require "type-data-structures.rkt")
-(require "type-prettyprint.rkt")
+(require "prettyprint-type.rkt")
 
 (provide tests-prettyprint-type)
 

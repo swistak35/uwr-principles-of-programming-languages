@@ -10,7 +10,7 @@
 (require "type-data-structures.rkt")
 (require "unification.rkt")
 (require "prettyprint-exp.rkt")
-(require "type-prettyprint.rkt")
+(require "prettyprint-type.rkt")
 
 (provide (all-defined-out))
 

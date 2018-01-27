@@ -7,7 +7,7 @@
                   format))
 (require (only-in racket/string
                   string-join))
-(require "type-prettyprint.rkt")
+(require "prettyprint-type.rkt")
 
 (provide (all-defined-out))
 

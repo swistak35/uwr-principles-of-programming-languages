@@ -4,7 +4,7 @@
 (require "lang.rkt")
 (require "type-data-structures.rkt")
 (require "inference.rkt")
-(require "type-prettyprint.rkt")
+(require "prettyprint-type.rkt")
 
 (provide inference-tests)
 
