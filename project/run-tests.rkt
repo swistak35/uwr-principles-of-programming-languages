@@ -3,10 +3,10 @@
 (require rackunit)
 (require rackunit/text-ui)
 (require (only-in "tests-inference.rkt" inference-tests))
-(require (only-in "tests-prettyprinter.rkt" prettyprinter-tests))
+(require (only-in "tests-prettyprint-exp.rkt" prettyprinter-tests))
 (require (only-in "tests-unification.rkt" unification-tests))
 (require (only-in "tests-interp.rkt" interp-tests))
-(require (only-in "tests-type-prettyprinter.rkt" tests-prettyprint-type))
+(require (only-in "tests-prettyprint-type.rkt" tests-prettyprint-type))
 
 (define full-spec
   (make-test-suite
