@@ -7,91 +7,68 @@
 (require (only-in racket/string
                   string-join))
 
-(provide pretty-print pretty-print/pgm)
+(provide prettyprint-exp)
 
-(define (print-indent n)
-  (make-string n #\space))
+(define (prettyprint-exp exp)
+  (cases expression exp
 
-; (define (pretty-print exp)
-;   (pretty-print-aux exp 0))
+    (const-exp (num) (number->string num))
 
-(define (pretty-print/pgm pgm)
-  (cases program pgm
-    (a-program (exp1)
-      (pretty-print exp1))))
+    (var-exp (var)
+      (symbol->string var))
 
-(define pretty-print
-  (lambda (exp)
-    (cases expression exp
+    (if-exp (exp1 exp2 exp3)
+      (format
+        "if ~a then ~a else ~a"
+        (prettyprint-exp exp1)
+        (prettyprint-exp exp2)
+        (prettyprint-exp exp3)))
 
-      (const-exp (num) (number->string num))
+    (let-exp (var exp1 body)
+      (format
+        "let ~a = ~a in ~a"
+        (symbol->string var)
+        (prettyprint-exp exp1)
+        (prettyprint-exp body)))
 
-      (var-exp (var)
-        (symbol->string var))
+    (proc-exp (var body)
+      (format
+        "proc(~a) ~a"
+        (symbol->string var)
+        (prettyprint-exp body)))
 
-      (if-exp (exp1 exp2 exp3)
+    (call-exp (rator rands)
+      (format
+        "(~a ~a)"
+        (prettyprint-exp rator)
+        (string-join (map prettyprint-exp rands) " ")))
+
+    (letrec-exp (p-names list-of-b-vars p-bodies letrec-body)
+      (format
+        "letrec ~a in ~a"
         (string-join
-          (list
-            (format "if ~a" (pretty-print exp1))
-            (format "then ~a" (pretty-print exp2))
-            (format "else ~a" (pretty-print exp3))
-            )
-          "\n"))
+          (map
+            (lambda (p-name b-vars p-body)
+              (format
+                "~a(~a) = ~a"
+                p-name
+                (string-join (map symbol->string b-vars) ", ")
+                (prettyprint-exp p-body)))
+            p-names list-of-b-vars p-bodies)
+          "  ")
+        (prettyprint-exp letrec-body)))
 
-      (let-exp (var exp1 body)
+    (begin-exp (exp1 exps)
+      (format
+        "begin ~a end"
+        (string-join (map prettyprint-exp (cons exp1 exps)) "; ")))
+
+    (list-exp (exps)
+      (format
+        "[~a]"
         (string-join
-          (list
-            (format "let ~a = ~a" (symbol->string var) (pretty-print exp1))
-            (format "in ~a" (pretty-print body)))
-          "\n"))
+          (map prettyprint-exp exps)
+          ", ")
+        ))
 
-      (proc-exp (var body)
-        (format "proc(~a) ~a" (symbol->string var) (pretty-print body)))
-
-      (call-exp (rator rands)
-        (format
-          "(~a ~a)"
-          (pretty-print rator)
-          (string-join (map pretty-print rands) " ")))
-
-      (letrec-exp (p-names b-vars p-bodies letrec-body)
-        (string-join
-          (list
-            (format "letrec ~a(~a) = ~a"
-              (symbol->string (car p-names))
-              (string-join (map symbol->string (car b-vars)) ", ")
-              (pretty-print (car p-bodies)))
-            (string-join
-              (map
-                (lambda (p-name b-vars p-body)
-                  (format
-                    "       ~a(~a) = ~a"
-                    p-name
-                    (string-join (map symbol->string b-vars) ", ")
-                    (pretty-print p-body)))
-                (cdr p-names) (cdr b-vars) (cdr p-bodies))
-              "\n")
-            (format "in ~a" (pretty-print letrec-body)))
-          "\n"))
-
-      (begin-exp (exp1 exps)
-        (string-join
-          (list
-            "begin"
-            (string-join
-              (map
-                (lambda (expn)
-                  (format "  ~a" (pretty-print expn))) (cons exp1 exps))
-              ";\n")
-            "end")
-          "\n"))
-
-      (list-exp (exps)
-        (format
-          "[~a]"
-          (string-join
-            (map pretty-print exps)
-            ", ")
-          ))
-
-      )))
+    ))

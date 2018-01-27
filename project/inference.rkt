@@ -299,6 +299,6 @@
   (when instrument-infer
     (printf
       "Inferred the type of:  ~a\n               to be:  ~a\n   with substitution:  ~a\n\n"
-      (pretty-print exp)
+      (prettyprint-exp exp)
       (prettyprint-type typ)
       (prettyprint-subst subst))))

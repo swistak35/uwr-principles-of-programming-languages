@@ -6,8 +6,13 @@
 
 (provide prettyprinter-tests)
 
+(define (prettyprint-exp/pgm pgm)
+  (cases program pgm
+    (a-program (exp1)
+      (prettyprint-exp exp1))))
+
 (define (runner prg)
-  (pretty-print/pgm (scan&parse prg)))
+  (prettyprint-exp/pgm (scan&parse prg)))
 
 (define prettyprinter-tests
   (test-suite
@@ -36,19 +41,16 @@
     (test-equal?
       "If exp"
       (runner "if 1 then 2 else 3")
-"if 1
-then 2
-else 3")
+      "if 1 then 2 else 3")
 
     (test-equal?
       "let"
       (runner "let x = 3 in x")
-"let x = 3
-in x")
+      "let x = 3 in x")
 
     (test-equal?
       "proc"
-      (runner "proc (y) (diff 42  y)")
+      (runner "proc (y) (diff 42 y)")
       "proc(y) (diff 42 y)")
 
     (test-equal?
@@ -60,18 +62,12 @@ in x")
       "letrec"
       (runner "letrec foo(x) = (diff 42 x)
                       bar(y) = (diff y z) in (foo (bar 17))")
-"letrec foo(x) = (diff 42 x)
-       bar(y) = (diff y z)
-in (foo (bar 17))")
+      "letrec foo(x) = (diff 42 x)  bar(y) = (diff y z) in (foo (bar 17))")
 
     (test-equal?
       "begin"
       (runner "begin (f 17); (g 42); (h -123) end")
-"begin
-  (f 17);
-  (g 42);
-  (h -123)
-end")
+      "begin (f 17); (g 42); (h -123) end")
 
     (test-equal?
       "empty list"
