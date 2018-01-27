@@ -211,6 +211,11 @@
       (runner-d "(42 42)"))
 
     (test-equal?
+      "primitive diff"
+      (runner "(diff 42 20)")
+      "int")
+
+    (test-equal?
       "using polymorphic primitive"
       (runner "(car [1])")
       "int")
@@ -245,10 +250,5 @@
       "example when we need to constraint variable set"
       #rx"Unification"
       (runner-d "((proc(f) proc(x) let g = f in (g 0)  proc(x) if x then (zero? 0) else (zero? 42)) (zero? 0))"))
-
-    ; (test-equal?
-    ;   "primitive diff"
-    ;   (runner "(diff 42 20)")
-    ;   (int-type))
 
     ))

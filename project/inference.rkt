@@ -253,6 +253,8 @@
              (final-type (answer->type body-answer)))
         (an-answer final-type final-subst)))
 
+    ; (letrec-exp (p-names list-of-b-vars p-bodies letrec-body)
+    ;   )
     (else (eopl:error 'infer "Unhandled expression ~s" exp))
 
     ))
