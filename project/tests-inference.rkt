@@ -18,7 +18,7 @@
   (test-suite
     "Type inference"
 
-    ;; Basic syntax
+    ;;; Basic syntax
 
     (test-equal?
       "Positive constants"
@@ -288,6 +288,22 @@
                in (map increment [-1,0,1,2])")
       "int list")
 
+    (test-equal?
+      "map example no multiarg definition"
+      (runner "letrec map(f) = letrec map2(xs) = if (null? xs) then [] else (cons (f (car xs)) ((map f) (cdr xs)))
+                               in map2
+                      increment(n) = (diff n -1)
+               in map")
+      "('21 -> '20) -> '21 list -> '20 list")
+
+    (test-equal?
+      "map example no multiarg"
+      (runner "letrec map(f) = letrec map2(xs) = if (null? xs) then [] else (cons (f (car xs)) ((map f) (cdr xs)))
+                               in map2
+                      increment(n) = (diff n -1)
+               in ((map increment) [-1,0,1,2])")
+      "int list")
+
     (test-exn
       "we do not have polymorphism inside recursive definitions"
       #rx"Unification"
@@ -346,5 +362,42 @@
                  in let t4m = proc (f) proc(x) if (zero? x) then 0 else (diff (f (diff x 1)) -4)
                     in let times4 = (fix t4m)
                        in (times4 3)"))
+
+    ;;; Explicit refs
+
+    (test-equal?
+      "gensym program"
+      (runner "let g = let counter = (newref 0) 
+                       in proc (dummy) let d = (setref counter (diff (deref counter) -1))
+                                       in (deref counter)
+               in (diff (g 11) (g 22))")
+      "int")
+
+    (test-equal?
+      "simple deref test"
+      (runner "let x = (newref 17) in (deref x)")
+      "int")
+
+    (test-equal?
+      "simple newref test"
+      (runner "let x = (newref 17) in x")
+      "int ref")
+
+    (test-exn
+      "can't assign other type"
+      #rx"Unification"
+      (runner-d "let x = (newref 17) 
+               in (setref x (zero? 0))"))
+
+    ; (test-equal?
+    ;   "even-odd-via-set example"
+    ;   (runner "let x = (newref 0)
+    ;            in letrec even(d) = if (zero? (deref x)) then 1 else let d = (setref x (diff (deref x) 1))
+    ;                                                                 in (odd d)
+    ;                      odd(d) = if (zero? (deref x)) then 0 else let d = (setref x (diff (deref x) 1))
+    ;                                                                in (even d)
+    ;               in let d = (setref x 13)
+    ;                  in (odd -100)")
+    ;   "bool")
 
     ))
