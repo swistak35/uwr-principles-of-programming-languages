@@ -349,11 +349,13 @@
         quantified-ids))))
 
 (define (generalize typ aset)
-  (a-type-scheme
-    (set-subtract
-      (free-var-ids-in-type typ)
-      (free-var-ids-in-aset aset))
-    typ))
+  (if (ref-type? typ)
+    (a-type-scheme/simple typ)
+    (a-type-scheme
+      (set-subtract
+        (free-var-ids-in-type typ)
+        (free-var-ids-in-aset aset))
+      typ)))
 
 (define (print-instrument-infer exp typ subst)
   (when instrument-infer

@@ -400,4 +400,25 @@
                      in (odd -100)")
       "int")
 
+    ;; This one is from the Pierce's book
+    (test-exn
+      "ref dangerous example"
+      #rx"Unification"
+      (runner-d "let r = (newref proc(x) x) in begin (setref r proc(x) (diff x 1)); ((deref r) (zero? 0)) end"))
+
+    ;; This one additionally check that we are not overly eager
+    (test-equal?
+      "ref safe example"
+      (runner "letrec newref2(x) = (newref x) in begin (newref2 42); (newref (zero? 42)) end")
+      "bool ref")
+
+    ;; Similarly as above, but a different edge case
+    (test-equal?
+      "ref another safe example"
+      (runner "letrec newref2(x) = (newref proc(y) y) in begin
+                                                          ((deref (newref2 42)) 78);
+                                                          ((deref (newref2 (zero? 42))) (zero? 42))
+                                                         end")
+      "bool")
+
     ))

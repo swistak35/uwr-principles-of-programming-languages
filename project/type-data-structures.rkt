@@ -20,6 +20,11 @@
     (types (list-of type?)))
   )
 
+(define (ref-type? typ)
+  (cases type typ
+    (ref-type (elem) #t)
+    (else #f)))
+
 ;; Mutable interface for fresh type variables (var-type)
 
 (define typevar-counter 'uninitialized)
