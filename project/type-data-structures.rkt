@@ -25,6 +25,17 @@
     (ref-type (elem) #t)
     (else #f)))
 
+(define (arrow-type? typ)
+  (cases type typ
+         (arrow-type (left right) #t)
+         (else #f)))
+
+(define (tuple-type? typ)
+  (cases type typ
+         (tuple-type (types) #t)
+         (else #f)))
+
+
 ;; Mutable interface for fresh type variables (var-type)
 
 (define typevar-counter 'uninitialized)

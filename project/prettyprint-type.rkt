@@ -8,16 +8,6 @@
 
 (provide prettyprint-type prettyprint-tscheme)
 
-(define (arrow-type? typ)
-  (cases type typ
-    (arrow-type (left right) #t)
-    (else #f)))
-
-(define (tuple-type? typ)
-  (cases type typ
-    (tuple-type (types) #t)
-    (else #f)))
-
 (define (infix-type? typ)
   (cases type typ
     (arrow-type (l r) #t)
