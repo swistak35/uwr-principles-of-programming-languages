@@ -1,8 +1,11 @@
 #lang eopl
 
-(provide (all-defined-out))
 (require (only-in racket/list
                   append* remove-duplicates))
+(require (only-in racket/set
+                  set-subtract))
+
+(provide (all-defined-out))
 
 ;; Types
 
@@ -51,6 +54,13 @@
       (int-type () '())
       (bool-type () '())
       (var-type (id) (list id)))))
+
+(define (free-var-ids-in-tscheme tscheme)
+  (cases type-scheme tscheme
+    (a-type-scheme (quantified-ids quantified-type)
+      (set-subtract
+        (var-ids-in-type quantified-type)
+        quantified-ids))))
 
 ;; Mutable interface for fresh type variables (var-type)
 

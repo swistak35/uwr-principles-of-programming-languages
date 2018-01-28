@@ -325,13 +325,6 @@
     (extend-aset (bvar btype saved-aset)
       (append (free-var-ids-in-tscheme btype) (free-var-ids-in-aset/aux saved-aset)))))
 
-(define (free-var-ids-in-tscheme tscheme)
-  (cases type-scheme tscheme
-    (a-type-scheme (quantified-ids quantified-type)
-      (set-subtract
-        (var-ids-in-type quantified-type)
-        quantified-ids))))
-
 (define (generalize typ aset)
   (if (ref-type? typ)
     (a-type-scheme/simple typ)
