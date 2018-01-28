@@ -18,6 +18,12 @@
     (tuple-type (types) #t)
     (else #f)))
 
+(define (infix-type? typ)
+  (cases type typ
+    (arrow-type (l r) #t)
+    (tuple-type (ts) #t)
+    (else #f)))
+
 (define (wrap s)
   (format "(~a)" s))
 
@@ -42,7 +48,7 @@
     (ref-type (elem-type)
       (format "~a ref" (prettyprint-type elem-type)))
     (arrow-type (left-type right-type)
-      (let ((left-str (if (arrow-type? left-type)
+      (let ((left-str (if (infix-type? left-type)
                         (wrap (prettyprint-type left-type))
                         (prettyprint-type left-type)))
             (right-str (prettyprint-type right-type)))
@@ -52,7 +58,7 @@
     (tuple-type (types)
       (string-join
         (map
-          (lambda (typ2) (if (tuple-type? typ2)
+          (lambda (typ2) (if (infix-type? typ2)
                            (wrap (prettyprint-type typ2))
                            (prettyprint-type typ2)))
           types)

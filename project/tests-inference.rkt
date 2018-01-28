@@ -111,7 +111,7 @@
     (test-equal?
       "primitive diff"
       (runner "diff")
-      "int * int -> int")
+      "(int * int) -> int")
 
     (test-equal?
       "primitive zero?"
@@ -252,8 +252,45 @@
       (runner-d "((proc(f) proc(x) let g = f in (g 0)  proc(x) if x then (zero? 0) else (zero? 42)) (zero? 0))"))
 
     (test-equal?
+      "fixpoint operator"
+      (runner "let fix = proc (f)
+                          let d = proc (x)
+                                    proc (z) ((f (x x)) z)
+                          in proc (n) ((f (d d)) n)
+               in let t4m = proc (f)
+                              proc(x)
+                                if (zero? x) then 0 else (diff (f (diff x 1)) -4)
+                  in let times4 = (fix t4m)
+                     in (times4 3)")
+      "int")
+
+    (test-equal?
       "simple letrec example"
       (runner "letrec counter(n) = if (zero? n) then 42 else (counter (diff n 1)) in counter")
       "int -> int")
+
+    (test-equal?
+      "simple letrec example execution"
+      (runner "letrec counter(n) = if (zero? n) then 42 else (counter (diff n 1)) in (counter 13)")
+      "int")
+
+    (test-equal?
+      "mutual letrec example"
+      (runner "letrec even(oddf) = proc(x) if (zero? x) then 1 else (oddf (diff x 1))
+               in letrec odd(x)  = if (zero? x) then 0 else ((even odd) (diff x 1))
+                  in (odd 13)")
+      "int")
+
+    (test-equal?
+      "map definition"
+      (runner "letrec map(f, xs) = if (null? xs) then [] else (cons (f (car xs)) (map f (cdr xs))) in map")
+      "(('16 -> '15) * '16 list) -> '15 list")
+
+    (test-equal?
+      "map example"
+      (runner "letrec map(f, xs) = if (null? xs) then [] else (cons (f (car xs)) (map f (cdr xs)))
+                      increment(n) = (diff n -1)
+               in (map increment [-1,0,1,2])")
+      "int list")
 
     ))

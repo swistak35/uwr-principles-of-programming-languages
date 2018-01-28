@@ -63,6 +63,15 @@
     (list 'cdr (a-type-scheme (list 0) (arrow-type
                                           (list-type (var-type 0))
                                           (list-type (var-type 0)))))
+    (list 'cons (a-type-scheme (list 0) (arrow-type
+                                          (tuple-type
+                                            (list
+                                              (var-type 0)
+                                              (list-type (var-type 0))))
+                                         (list-type (var-type 0)))))
+    (list 'null? (a-type-scheme (list 0) (arrow-type
+                                           (list-type (var-type 0))
+                                           (bool-type))))
     ))
 
 (define (initial-aset)
