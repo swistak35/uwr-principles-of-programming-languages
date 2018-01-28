@@ -4,7 +4,7 @@
 
 ; for prettyprinter
 (require (only-in racket/base
-                  format))
+                  format foldl))
 (require (only-in racket/string
                   string-join))
 (require "prettyprint-type.rkt")
@@ -70,9 +70,26 @@
         (subst-in-type subst (eq->right eq))))
     equalities))
 
+(define (var-occurs-in-type? search-id typ)
+  (cases type typ
+    (int-type () #f)
+    (bool-type () #f)
+    (var-type (id) (eq? id search-id))
+    (arrow-type (left right)
+      (or (var-occurs-in-type? search-id left) (var-occurs-in-type? search-id right)))
+    (list-type (elem) (var-occurs-in-type? search-id elem))
+    (ref-type (elem) (var-occurs-in-type? search-id elem))
+    (tuple-type (elems)
+      (foldl
+        (lambda (elem res) (or (var-occurs-in-type? search-id elem) res))
+        #f
+        elems))))
+
 (define (unify/var-sth equalities saved-subst id sth)
-  (let ((new-subst (merge-subst saved-subst (extend-subst id sth (empty-subst)))))
-    (unify (subst-in-equalities new-subst equalities) new-subst)))
+  (if (and (not (equal? (var-type id) sth)) (var-occurs-in-type? id sth))
+    (eopl:error 'infer "Unification failed - occurs free check of ~s in ~s" id (prettyprint-type sth))
+    (let ((new-subst (merge-subst saved-subst (extend-subst id sth (empty-subst)))))
+      (unify (subst-in-equalities new-subst equalities) new-subst))))
 
 (define (unify/arrow-arrow equalities saved-subst left1 right1 left2 right2)
   (unify
@@ -191,6 +208,7 @@
     (extend-subst (id stype saved-subst)
       (cons (list id stype) (subst->list saved-subst)))))
 
-(require trace)
+; (require trace)
+; (trace var-occurs-in-type?)
 ; (trace unify)
 ; (trace merge-subst)

@@ -246,19 +246,6 @@
       (runner-d "((proc(f) proc(x) let g = f in (g 0)  proc(x) if x then (zero? 0) else (zero? 42)) (zero? 0))"))
 
     (test-equal?
-      "fixpoint operator"
-      (runner "let fix = proc (f)
-                          let d = proc (x)
-                                    proc (z) ((f (x x)) z)
-                          in proc (n) ((f (d d)) n)
-               in let t4m = proc (f)
-                              proc(x)
-                                if (zero? x) then 0 else (diff (f (diff x 1)) -4)
-                  in let times4 = (fix t4m)
-                     in (times4 3)")
-      "int")
-
-    (test-equal?
       "simple letrec example"
       (runner "letrec counter(n) = if (zero? n) then 42 else (counter (diff n 1)) in counter")
       "int -> int")
@@ -321,18 +308,43 @@
       "bool -> int")
 
     (test-exn
-      "calling with wrong number of arguments"
+      "calling with too little arguments in letrec body"
       #rx"Unification"
       (runner-d "letrec foo(x, y) = 42 in (foo 1)"))
 
     (test-exn
-      "calling with wrong number of arguments"
+      "calling with too many arguments in letrec body"
       #rx"Unification"
       (runner-d "letrec foo(x, y) = 42 in (foo 1 2 3)"))
 
-    ; (test-equal?
-    ;   "calling with wrong number of arguments"
-    ;   (runner "letrec foo(x, y) = (foo x) in 42")
-    ;   "int")
+    (test-exn
+      "calling with too many arguments in procedure body"
+      #rx"Unification"
+      (runner-d "letrec foo(x, y) = (foo 1 2 3) in 42"))
+
+    (test-exn
+      "calling with too little arguments in procedure body"
+      #rx"Unification"
+      (runner-d "letrec foo(x, y) = (foo 1) in 42"))
+
+    (test-exn
+      "calling with too little arguments in procedure body - dubious example"
+      #rx"Unification failed - occurs free check"
+      (runner-d "letrec foo(x, y) = (foo x) in foo"))
+
+    (test-exn
+      "testing whether unification algorithm checks for occurrence"
+      #rx"Unification failed - occurs free check"
+      (runner-d "proc(f) (zero? (f f))"))
+
+    ; It is expected that this version of fixpoint operator does not typecheck
+    (test-exn
+      "fixpoint operator"
+      #rx"Unification failed - occurs free check"
+      (runner-d "let fix = proc (f) let d = proc (x) proc (z) ((f (x x)) z)
+                                    in proc (n) ((f (d d)) n)
+                 in let t4m = proc (f) proc(x) if (zero? x) then 0 else (diff (f (diff x 1)) -4)
+                    in let times4 = (fix t4m)
+                       in (times4 3)"))
 
     ))
