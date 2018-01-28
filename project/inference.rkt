@@ -7,6 +7,10 @@
                   append* remove-duplicates))
 (require (only-in racket/set
                   set-subtract))
+(require (only-in racket/base
+                  format))
+(require (only-in racket/string
+                  string-join))
 (require "type-data-structures.rkt")
 (require "unification.rkt")
 (require "prettyprint-exp.rkt")
@@ -83,7 +87,10 @@
     exp-type))
 
 (define (unify/one left right)
-  (unify (list (an-equality left right)) (empty-subst)))
+  ; (printf "Calling unification with equality ~a = ~a\n" (prettyprint-type left) (prettyprint-type right))
+  (let ((result (unify (list (an-equality left right)) (empty-subst))))
+    ; (printf "Result of unification: ~a\n\n" (prettyprint-subst result))
+    result))
 
 (define (subst-in-aset subst aset)
   (cases assumption-set aset
@@ -150,6 +157,7 @@
         (replace-typevars quantified-type mapping)))))
 
 (define (infer-exp exp aset)
+  ; (printf "Started inferring expression: ~a\n  with assumption set: ~a\n" (prettyprint-exp exp) (prettyprint-aset aset))
   (cases expression exp
 
     (const-exp (num)
@@ -253,8 +261,42 @@
              (final-type (answer->type body-answer)))
         (an-answer final-type final-subst)))
 
-    ; (letrec-exp (p-names list-of-b-vars p-bodies letrec-body)
-    ;   )
+    (letrec-exp (p-names list-of-b-vars p-bodies letrec-body)
+      (let* (
+             (p-names-typevars (map (lambda (p-name) (get-fresh-typevar)) p-names))
+             (aset-with-p-names (multi-extend-aset p-names (map a-type-scheme/simple p-names-typevars) aset))
+             (subst-for-body (foldl
+                               (lambda (p-name p-name-typevar b-vars p-body current-subst)
+                                 (let* ( ;(current-subst (car result))
+                                        (b-vars-typevars (map (lambda (b-var) (get-fresh-typevar)) b-vars))
+                                        (arg-type (if (= 1 (length b-vars))
+                                                    (car b-vars-typevars)
+                                                    (tuple-type b-vars-typevars)))
+                                        (aset-for-p-body (multi-extend-aset b-vars (map a-type-scheme/simple b-vars-typevars) aset-with-p-names))
+                                        (p-body-answer (infer-exp p-body aset-for-p-body))
+                                        (subst-after-p-body (merge-subst current-subst (answer->subst p-body-answer)))
+                                        (final-subst (merge-subst
+                                                       subst-after-p-body
+                                                       (unify/one
+                                                         (subst-in-type subst-after-p-body p-name-typevar)
+                                                         (subst-in-type subst-after-p-body (arrow-type arg-type (answer->type p-body-answer)))))))
+                                   final-subst))
+                               (empty-subst)
+                               p-names p-names-typevars list-of-b-vars p-bodies))
+             (aset-for-body (foldl
+                              (lambda (p-name p-name-typevar tmp-aset)
+                                (extend-aset
+                                  p-name
+                                  (generalize (subst-in-type subst-for-body p-name-typevar) tmp-aset)
+                                  tmp-aset))
+                              (subst-in-aset subst-for-body aset)
+                              p-names p-names-typevars))
+             (letrec-body-answer (infer-exp letrec-body aset-for-body))
+             (final-subst (merge-subst subst-for-body (answer->subst letrec-body-answer)))
+             (final-type (answer->type letrec-body-answer)))
+        (print-instrument-infer exp final-type final-subst)
+        (an-answer final-type final-subst)))
+
     (else (eopl:error 'infer "Unhandled expression ~s" exp))
 
     ))
@@ -305,3 +347,27 @@
       (prettyprint-exp exp)
       (prettyprint-type typ)
       (prettyprint-subst subst))))
+
+(define (multi-extend-aset b-vars b-types saved-aset)
+  (if (null? b-vars)
+    saved-aset
+    (extend-aset
+      (car b-vars)
+      (car b-types)
+      (multi-extend-aset (cdr b-vars) (cdr b-types) saved-aset))))
+
+(define (aset->list aset)
+  (cases assumption-set aset
+         (empty-aset () '())
+         (extend-aset (b-var b-type saved-aset)
+                       (cons (list b-var b-type) (aset->list saved-aset)))))
+
+(define (prettyprint-aset aset)
+  (format
+    "{~a}"
+    (string-join
+      (map
+        (lambda (aset-elem) (format "~a: ~a" (car aset-elem) (prettyprint-tscheme (cadr aset-elem))))
+        (aset->list aset))
+      "; ")))
+

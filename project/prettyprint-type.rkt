@@ -6,7 +6,7 @@
                   string-join))
 (require "type-data-structures.rkt")
 
-(provide prettyprint-type)
+(provide prettyprint-type prettyprint-tscheme)
 
 (define (arrow-type? typ)
   (cases type typ
@@ -20,6 +20,16 @@
 
 (define (wrap s)
   (format "(~a)" s))
+
+(define (prettyprint-tscheme tscheme)
+  (cases type-scheme tscheme
+    (a-type-scheme (quantified-ids quantified-type)
+      (if (null? quantified-ids)
+        (prettyprint-type quantified-type)
+        (format
+          "forall ~a . ~a"
+          quantified-ids
+          (prettyprint-type quantified-type))))))
 
 (define (prettyprint-type typ)
   (cases type typ

@@ -2,6 +2,8 @@
 
 (provide (all-defined-out))
 
+;; Types
+
 (define-datatype type type?
   (int-type)
   (bool-type)
@@ -18,10 +20,7 @@
     (types (list-of type?)))
   )
 
-(define-datatype type-scheme type-scheme?
-  (a-type-scheme
-    (quantified-ids (list-of integer?))
-    (quantified-type type?)))
+;; Mutable interface for fresh type variables (var-type)
 
 (define typevar-counter 'uninitialized)
 (define (initialize-typevar-counter!)
@@ -31,3 +30,13 @@
   typevar-counter)
 (define (get-fresh-typevar)
   (var-type (get-fresh-typevar-id)))
+
+;; Type schemes
+
+(define-datatype type-scheme type-scheme?
+  (a-type-scheme
+    (quantified-ids (list-of integer?))
+    (quantified-type type?)))
+
+(define (a-type-scheme/simple typ)
+  (a-type-scheme '() typ))

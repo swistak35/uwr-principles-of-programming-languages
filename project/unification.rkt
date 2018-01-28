@@ -189,6 +189,6 @@
     (extend-subst (id stype saved-subst)
       (cons (list id stype) (subst->list saved-subst)))))
 
-; (require trace)
+(require trace)
 ; (trace unify)
 ; (trace merge-subst)

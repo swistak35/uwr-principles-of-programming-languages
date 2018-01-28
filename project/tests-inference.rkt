@@ -251,4 +251,9 @@
       #rx"Unification"
       (runner-d "((proc(f) proc(x) let g = f in (g 0)  proc(x) if x then (zero? 0) else (zero? 42)) (zero? 0))"))
 
+    (test-equal?
+      "simple letrec example"
+      (runner "letrec counter(n) = if (zero? n) then 42 else (counter (diff n 1)) in counter")
+      "int -> int")
+
     ))
