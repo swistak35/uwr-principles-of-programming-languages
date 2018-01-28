@@ -40,7 +40,6 @@
       #rx"Unification"
       (runner-d "if (zero? 42) then (zero? 1) else 2"))
 
-    ; NOTSURE: Whether this should behave in this way?
     (test-exn
       "unbound variable"
       #rx"No binding"
@@ -133,10 +132,10 @@
     ;   (runner "setref")
     ;   "'1 ref * '1 -> int")
 
-    ; (test-equal?
-    ;   "primitive cons"
-    ;   (runner "cons")
-    ;   "'1 * '1 list -> '1 list")
+    (test-equal?
+      "primitive cons"
+      (runner "cons")
+      "('1 * '1 list) -> '1 list")
 
     (test-equal?
       "primitive car"
@@ -148,10 +147,10 @@
       (runner "cdr")
       "'1 list -> '1 list")
 
-    ; (test-equal?
-    ;   "primitive null?"
-    ;   (runner "null?")
-    ;   "'1 list -> bool")
+    (test-equal?
+      "primitive null?"
+      (runner "null?")
+      "'1 list -> bool")
 
     ;;; Calls
 
@@ -209,11 +208,6 @@
       "call to something which is not a function"
       #rx"Unification"
       (runner-d "(42 42)"))
-
-    (test-equal?
-      "primitive diff"
-      (runner "(diff 42 20)")
-      "int")
 
     (test-equal?
       "using polymorphic primitive"
@@ -275,11 +269,25 @@
       "int")
 
     (test-equal?
-      "mutual letrec example"
+      "nested letrecs"
       (runner "letrec even(oddf) = proc(x) if (zero? x) then 1 else (oddf (diff x 1))
                in letrec odd(x)  = if (zero? x) then 0 else ((even odd) (diff x 1))
                   in (odd 13)")
       "int")
+
+    (test-equal?
+      "mutual procedure calling - even"
+      (runner "letrec even(n) = if (zero? n) then (zero? 0) else (odd (diff n 1))
+                      odd(n)  = if (zero? n) then (zero? 1) else (even (diff n 1))
+               in even")
+      "int -> bool")
+
+    (test-equal?
+      "mutual procedure calling - odd"
+      (runner "letrec even(n) = if (zero? n) then (zero? 0) else (odd (diff n 1))
+                      odd(n)  = if (zero? n) then (zero? 1) else (even (diff n 1))
+               in odd")
+      "int -> bool")
 
     (test-equal?
       "map definition"
@@ -292,5 +300,10 @@
                       increment(n) = (diff n -1)
                in (map increment [-1,0,1,2])")
       "int list")
+
+    (test-exn
+      "we do not have polymorphism inside recursive definitions"
+      #rx"Unification"
+      (runner-d "letrec foo(x) = if (zero? 0) then 42 else begin (foo (zero? 0)); (foo 42); 42 end in foo"))
 
     ))
