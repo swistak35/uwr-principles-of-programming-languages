@@ -149,12 +149,17 @@
       (tuple-type (map (lambda (t) (replace-typevars t mapping)) elems)))
     ))
 
+(define (zip lst1 lst2)
+  (map list lst1 lst2))
+
 (define (instantiate tscheme)
   (cases type-scheme tscheme
     (a-type-scheme (quantified-ids quantified-type)
-      (let* ((fresh-typevars (map (lambda (id) (get-fresh-typevar)) quantified-ids))
-              (mapping (map list quantified-ids fresh-typevars)))
-        (replace-typevars quantified-type mapping)))))
+      (replace-typevars
+        quantified-type
+        (zip
+          quantified-ids
+          (map (lambda (id) (get-fresh-typevar)) quantified-ids))))))
 
 (define (infer-exp exp aset)
   ; (printf "Started inferring expression: ~a\n  with assumption set: ~a\n" (prettyprint-exp exp) (prettyprint-aset aset))
@@ -167,47 +172,52 @@
 
     (if-exp (exp1 exp2 exp3)
       (let* ((exp1-answer (infer-exp exp1 aset))
-             (exp1-subst (answer->subst exp1-answer))
-             (exp1-type (answer->type exp1-answer))
-             (exp2-aset-subst (merge-subst exp1-subst (unify/one (bool-type) exp1-type)))
+             (subst-for-exp2-aset (merge-subst
+                                    (answer->subst exp1-answer)
+                                    (unify/one
+                                      (bool-type)
+                                      (answer->type exp1-answer))))
 
-             (exp2-aset (subst-in-aset exp2-aset-subst aset))
-             (exp2-answer (infer-exp exp2 exp2-aset))
-             (exp2-subst (answer->subst exp2-answer))
-             (exp2-type (answer->type exp2-answer))
-             (exp3-aset-subst (merge-subst exp2-aset-subst exp2-subst))
+             (aset-for-exp2 (subst-in-aset subst-for-exp2-aset aset))
+             (exp2-answer (infer-exp exp2 aset-for-exp2))
+             (subst-for-exp3-aset (merge-subst
+                                    subst-for-exp2-aset
+                                    (answer->subst exp2-answer)))
 
-             (exp3-aset (subst-in-aset exp3-aset-subst aset))
-             (exp3-answer (infer-exp exp3 exp3-aset))
-             (exp3-subst (answer->subst exp3-answer))
-             (exp3-type (answer->type exp3-answer))
-             (final-subst (merge-subst (merge-subst exp3-aset-subst exp3-subst) (unify/one exp2-type exp3-type))))
-        (an-answer
-          (subst-in-type final-subst exp2-type)
-          final-subst)))
+             (aset-for-exp3 (subst-in-aset subst-for-exp3-aset aset-for-exp2))
+             (exp3-answer (infer-exp exp3 aset-for-exp3))
+             (subst-from-exps (merge-subst
+                                subst-for-exp3-aset
+                                (answer->subst exp3-answer)))
+
+             (final-subst (merge-subst
+                            subst-from-exps
+                            (unify/one
+                              (subst-in-type subst-from-exps (answer->type exp2-answer))
+                              (subst-in-type subst-from-exps (answer->type exp3-answer)))))
+             (final-type (subst-in-type final-subst (answer->type exp2-answer))))
+        (an-answer final-type final-subst)))
 
     (proc-exp (bvar body)
       (let* ((arg-type (get-fresh-typevar))
-             (body-answer (infer-exp body (extend-aset bvar (a-type-scheme '() arg-type) aset)))
-             (body-subst (answer->subst body-answer)))
-        (an-answer
-          (subst-in-type body-subst (arrow-type arg-type (answer->type body-answer)))
-          body-subst)))
+             (body-answer (infer-exp body (extend-aset bvar (a-type-scheme/simple arg-type) aset)))
+             (final-subst (answer->subst body-answer))
+             (final-type (subst-in-type final-subst (arrow-type arg-type (answer->type body-answer)))))
+        (an-answer final-type final-subst)))
 
     (var-exp (var)
-      (let* ((var-scheme (apply-aset aset var)))
-        (an-answer
-          (instantiate var-scheme)
-          (empty-subst))))
+      (let* ((var-scheme (apply-aset aset var))
+             (instantiated-type (instantiate var-scheme)))
+        (an-answer instantiated-type (empty-subst))))
 
     (call-exp (rator rands)
       (let* ((rator-answer (infer-exp rator aset))
-              (handle-call-answer (handle-call/maybe-arrow
-                                    (answer->type rator-answer)
-                                    rands
-                                    (subst-in-aset (answer->subst rator-answer) aset)))
-              (final-type (answer->type handle-call-answer))
-              (final-subst (merge-subst (answer->subst rator-answer) (answer->subst handle-call-answer))))
+             (handle-call-answer (handle-call/maybe-arrow
+                                   (answer->type rator-answer)
+                                   rands
+                                   (subst-in-aset (answer->subst rator-answer) aset)))
+             (final-type (answer->type handle-call-answer))
+             (final-subst (merge-subst (answer->subst rator-answer) (answer->subst handle-call-answer))))
         (print-instrument-infer exp final-type final-subst)
         (an-answer final-type final-subst)))
 
@@ -221,7 +231,7 @@
                           (list
                             final-subst
                             (subst-in-aset final-subst current-aset)
-                            (answer->type cexp-answer))))
+                            (subst-in-type final-subst (answer->type cexp-answer)))))
                       (list (empty-subst) aset 'no-type)
                       (cons exp1 exps))))
         (an-answer
@@ -240,7 +250,7 @@
                                                 cexp-final-subst
                                                 (unify/one
                                                   (subst-in-type cexp-final-subst elem-vartype)
-                                                  (answer->type cexp-answer)))))
+                                                  (subst-in-type cexp-final-subst (answer->type cexp-answer))))))
                             (list
                               final-subst
                               (subst-in-aset final-subst current-aset))))
@@ -255,20 +265,18 @@
       (let* ((exp1-answer (infer-exp exp1 aset))
              (substituted-aset (subst-in-aset (answer->subst exp1-answer) aset))
              (tscheme (generalize (answer->type exp1-answer) substituted-aset))
-             (new-aset (extend-aset var tscheme substituted-aset))
-             (body-answer (infer-exp body new-aset))
+             (aset-for-body (extend-aset var tscheme substituted-aset))
+             (body-answer (infer-exp body aset-for-body))
              (final-subst (merge-subst (answer->subst exp1-answer) (answer->subst body-answer)))
-             (final-type (answer->type body-answer)))
+             (final-type (subst-in-type final-subst (answer->type body-answer))))
         (an-answer final-type final-subst)))
 
     (letrec-exp (p-names list-of-b-vars p-bodies letrec-body)
-      (let* (
-             (p-names-typevars (map (lambda (p-name) (get-fresh-typevar)) p-names))
+      (let* ((p-names-typevars (map (lambda (p-name) (get-fresh-typevar)) p-names))
              (aset-with-p-names (multi-extend-aset p-names (map a-type-scheme/simple p-names-typevars) aset))
              (subst-for-body (foldl
                                (lambda (p-name p-name-typevar b-vars p-body current-subst)
-                                 (let* ( ;(current-subst (car result))
-                                        (b-vars-typevars (map (lambda (b-var) (get-fresh-typevar)) b-vars))
+                                 (let* ((b-vars-typevars (map (lambda (b-var) (get-fresh-typevar)) b-vars))
                                         (arg-type (if (= 1 (length b-vars))
                                                     (car b-vars-typevars)
                                                     (tuple-type b-vars-typevars)))
