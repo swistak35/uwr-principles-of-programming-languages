@@ -8,15 +8,6 @@
 
 (provide prettyprint-type prettyprint-tscheme)
 
-(define (infix-type? typ)
-  (cases type typ
-    (arrow-type (l r) #t)
-    (tuple-type (ts) #t)
-    (else #f)))
-
-(define (wrap s)
-  (format "(~a)" s))
-
 (define (prettyprint-tscheme tscheme)
   (cases type-scheme tscheme
     (a-type-scheme (quantified-ids quantified-type)
@@ -54,3 +45,9 @@
           types)
         " * "))
     ))
+
+(define (infix-type? typ)
+  (or (arrow-type? typ) (tuple-type? typ)))
+
+(define (wrap s)
+  (format "(~a)" s))

@@ -27,13 +27,13 @@
 
 (define (arrow-type? typ)
   (cases type typ
-         (arrow-type (left right) #t)
-         (else #f)))
+    (arrow-type (left right) #t)
+    (else #f)))
 
 (define (tuple-type? typ)
   (cases type typ
-         (tuple-type (types) #t)
-         (else #f)))
+    (tuple-type (types) #t)
+    (else #f)))
 
 
 ;; Mutable interface for fresh type variables (var-type)
