@@ -320,4 +320,19 @@
                in foo")
       "bool -> int")
 
+    (test-exn
+      "calling with wrong number of arguments"
+      #rx"Unification"
+      (runner-d "letrec foo(x, y) = 42 in (foo 1)"))
+
+    ; (test-exn
+    ;   "calling with wrong number of arguments"
+    ;   #rx"Unification"
+    ;   (runner-d "letrec foo(x, y) = 42 in (foo 1 2 3)"))
+
+    ; (test-equal?
+    ;   "calling with wrong number of arguments"
+    ;   (runner "letrec foo(x, y) = (foo x) in 42")
+    ;   "int")
+
     ))
