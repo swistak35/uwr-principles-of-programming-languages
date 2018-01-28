@@ -91,11 +91,13 @@
   (unify/list-list equalities saved-subst elem1 elem2))
 
 (define (unify/tuple-tuple equalities saved-subst elems1 elems2)
-  (unify
-    (append
-      (map (lambda (elem1 elem2) (an-equality elem1 elem2)) elems1 elems2)
-      equalities)
-    saved-subst))
+  (if (eq? (length elems1) (length elems2))
+    (unify
+      (append
+        (map (lambda (elem1 elem2) (an-equality elem1 elem2)) elems1 elems2)
+        equalities)
+      saved-subst)
+    (eopl:error 'infer "Unification failed")))
 
 (define (unify/simple equalities saved-subst left right)
   (if (equal? left right)
