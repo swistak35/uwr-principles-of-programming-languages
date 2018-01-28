@@ -72,6 +72,15 @@
     (list 'null? (a-type-scheme (list 0) (arrow-type
                                            (list-type (var-type 0))
                                            (bool-type))))
+    (list 'newref (a-type-scheme (list 0) (arrow-type
+                                             (var-type 0)
+                                             (ref-type (var-type 0)))))
+    (list 'deref (a-type-scheme (list 0) (arrow-type
+                                             (ref-type (var-type 0))
+                                             (var-type 0))))
+    (list 'setref (a-type-scheme (list 0) (arrow-type
+                                             (tuple-type (list (ref-type (var-type 0)) (var-type 0)))
+                                             (int-type))))
     ))
 
 (define (initial-aset)
@@ -305,9 +314,6 @@
              (final-type (answer->type letrec-body-answer)))
         (print-instrument-infer exp final-type final-subst)
         (an-answer final-type final-subst)))
-
-    (else (eopl:error 'infer "Unhandled expression ~s" exp))
-
     ))
 
 (define (free-var-ids-in-type typ)

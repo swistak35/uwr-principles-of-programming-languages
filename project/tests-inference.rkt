@@ -117,20 +117,20 @@
       (runner "zero?")
       "int -> bool")
 
-    ; (test-equal?
-    ;   "primitive newref"
-    ;   (runner "newref")
-    ;   "'1 -> '1 ref")
+    (test-equal?
+      "primitive newref"
+      (runner "newref")
+      "'1 -> '1 ref")
 
-    ; (test-equal?
-    ;   "primitive deref"
-    ;   (runner "deref")
-    ;   "'1 ref -> '1")
+    (test-equal?
+      "primitive deref"
+      (runner "deref")
+      "'1 ref -> '1")
 
-    ; (test-equal?
-    ;   "primitive setref"
-    ;   (runner "setref")
-    ;   "'1 ref * '1 -> int")
+    (test-equal?
+      "primitive setref"
+      (runner "setref")
+      "('1 ref * '1) -> int")
 
     (test-equal?
       "primitive cons"
