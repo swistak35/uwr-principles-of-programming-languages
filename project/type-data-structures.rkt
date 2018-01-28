@@ -1,6 +1,8 @@
 #lang eopl
 
 (provide (all-defined-out))
+(require (only-in racket/list
+                  append* remove-duplicates))
 
 ;; Types
 
@@ -35,6 +37,20 @@
     (tuple-type (types) #t)
     (else #f)))
 
+(define (var-ids-in-type typ)
+  (remove-duplicates
+    (cases type typ
+      (arrow-type (left right)
+        (append (var-ids-in-type left) (var-ids-in-type right)))
+      (list-type (elem)
+        (var-ids-in-type elem))
+      (ref-type (elem)
+        (var-ids-in-type elem))
+      (tuple-type (elems)
+        (append* (map var-ids-in-type elems)))
+      (int-type () '())
+      (bool-type () '())
+      (var-type (id) (list id)))))
 
 ;; Mutable interface for fresh type variables (var-type)
 

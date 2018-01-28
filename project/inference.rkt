@@ -4,7 +4,7 @@
 (require (only-in racket/base
                   foldl printf))
 (require (only-in racket/list
-                  append* remove-duplicates))
+                  remove-duplicates))
 (require (only-in racket/set
                   set-subtract))
 (require (only-in racket/base
@@ -316,22 +316,6 @@
         (an-answer final-type final-subst)))
     ))
 
-(define (free-var-ids-in-type typ)
-  (remove-duplicates (free-var-ids-in-type/aux typ)))
-(define (free-var-ids-in-type/aux typ)
-  (cases type typ
-    (arrow-type (left right)
-      (append (free-var-ids-in-type/aux left) (free-var-ids-in-type/aux right)))
-    (list-type (elem)
-      (free-var-ids-in-type/aux elem))
-    (ref-type (elem)
-      (free-var-ids-in-type/aux elem))
-    (tuple-type (elems)
-      (append* (map free-var-ids-in-type/aux elems)))
-    (int-type () '())
-    (bool-type () '())
-    (var-type (id) (list id))))
-
 (define (free-var-ids-in-aset aset)
   (remove-duplicates (free-var-ids-in-aset/aux aset)))
 ; Not optimal, but trivial to optimize
@@ -345,7 +329,7 @@
   (cases type-scheme tscheme
     (a-type-scheme (quantified-ids quantified-type)
       (set-subtract
-        (free-var-ids-in-type quantified-type)
+        (var-ids-in-type quantified-type)
         quantified-ids))))
 
 (define (generalize typ aset)
@@ -353,7 +337,7 @@
     (a-type-scheme/simple typ)
     (a-type-scheme
       (set-subtract
-        (free-var-ids-in-type typ)
+        (var-ids-in-type typ)
         (free-var-ids-in-aset aset))
       typ)))
 
