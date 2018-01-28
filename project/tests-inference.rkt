@@ -306,4 +306,18 @@
       #rx"Unification"
       (runner-d "letrec foo(x) = if (zero? 0) then 42 else begin (foo (zero? 0)); (foo 42); 42 end in foo"))
 
+    (test-equal?
+      "argument names override procedure names, 1"
+      (runner "letrec foo(bar) = if bar then 42 else 17
+                      bar(x) = x
+               in foo")
+      "bool -> int")
+
+    (test-equal?
+      "argument names override procedure names, 1 (order doesnt matter)"
+      (runner "letrec bar(x) = x
+                      foo(bar) = if bar then 42 else 17
+               in foo")
+      "bool -> int")
+
     ))
