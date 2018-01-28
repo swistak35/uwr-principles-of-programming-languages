@@ -290,7 +290,7 @@
                                         (arg-type (if (= 1 (length b-vars))
                                                     (car b-vars-typevars)
                                                     (tuple-type b-vars-typevars)))
-                                        (aset-for-p-body (multi-extend-aset b-vars (map a-type-scheme/simple b-vars-typevars) aset-with-p-names))
+                                        (aset-for-p-body (subst-in-aset current-subst (multi-extend-aset b-vars (map a-type-scheme/simple b-vars-typevars) aset-with-p-names)))
                                         (p-body-answer (infer-exp p-body aset-for-p-body))
                                         (subst-after-p-body (merge-subst current-subst (answer->subst p-body-answer)))
                                         (final-subst (merge-subst

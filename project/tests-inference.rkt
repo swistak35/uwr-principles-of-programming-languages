@@ -389,15 +389,15 @@
       (runner-d "let x = (newref 17) 
                in (setref x (zero? 0))"))
 
-    ; (test-equal?
-    ;   "even-odd-via-set example"
-    ;   (runner "let x = (newref 0)
-    ;            in letrec even(d) = if (zero? (deref x)) then 1 else let d = (setref x (diff (deref x) 1))
-    ;                                                                 in (odd d)
-    ;                      odd(d) = if (zero? (deref x)) then 0 else let d = (setref x (diff (deref x) 1))
-    ;                                                                in (even d)
-    ;               in let d = (setref x 13)
-    ;                  in (odd -100)")
-    ;   "bool")
+    (test-equal?
+      "even-odd-via-set example"
+      (runner "let x = (newref 0)
+               in letrec even(d) = if (zero? (deref x)) then 1 else let d = (setref x (diff (deref x) 1))
+                                                                    in (odd d)
+                         odd(d) = if (zero? (deref x)) then 0 else let d = (setref x (diff (deref x) 1))
+                                                                   in (even d)
+                  in let d = (setref x 13)
+                     in (odd -100)")
+      "int")
 
     ))
