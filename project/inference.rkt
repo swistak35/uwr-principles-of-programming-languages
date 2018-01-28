@@ -1,17 +1,12 @@
 #lang eopl
 
-(require "lang.rkt")
 (require (only-in racket/base
                   foldl printf))
-(require (only-in racket/list
-                  remove-duplicates))
 (require (only-in racket/set
                   set-subtract))
-(require (only-in racket/base
-                  format))
-(require (only-in racket/string
-                  string-join))
+(require "lang.rkt")
 (require "type-data-structures.rkt")
+(require "assumption-sets.rkt")
 (require "unification.rkt")
 (require "prettyprint-exp.rkt")
 (require "prettyprint-type.rkt")
@@ -20,21 +15,7 @@
 
 (define instrument-infer #f)
 
-(define-datatype assumption-set assumption-set?
-  (empty-aset)
-  (extend-aset 
-    (bvar symbol?)
-    (btype type-scheme?)
-    (saved-aset assumption-set?)))
-
-(define (apply-aset aset var)
-  (cases assumption-set aset
-    (empty-aset ()
-      (eopl:error 'apply-aset "No binding for ~s" var))
-    (extend-aset (bvar btype saved-aset)
-      (if (eqv? var bvar)
-        btype
-        (apply-aset saved-aset var)))))
+;; Answer data structure
 
 (define-datatype answer answer?
   (an-answer
@@ -48,6 +29,8 @@
 (define (answer->subst ans)
   (cases answer ans
     (an-answer (ans-type ans-substitution) ans-substitution)))
+
+;; Primitives types
 
 (define primitives-types
   (list
@@ -92,17 +75,16 @@
     (empty-aset)
     primitives-types))
 
-(define (infer/pgm pgm)
+;; Actual inference algorithm
+
+(define (infer-program pgm)
   (cases program pgm
     (a-program (exp1)
-      (infer exp1))))
-
-(define (infer exp)
-  (initialize-typevar-counter!)
-  (let* ((exp-ans (infer-exp exp (initial-aset)))
-          (exp-type (answer->type exp-ans))
-          (exp-subst (answer->subst exp-ans)))
-    exp-type))
+      (initialize-typevar-counter!)
+      (let* ((exp-ans (infer-exp exp1 (initial-aset)))
+             (exp-type (answer->type exp-ans))
+             (exp-subst (answer->subst exp-ans)))
+        exp-type))))
 
 (define (unify/one left right)
   ; (printf "Calling unification with equality ~a = ~a\n" (prettyprint-type left) (prettyprint-type right))
@@ -316,15 +298,6 @@
         (an-answer final-type final-subst)))
     ))
 
-(define (free-var-ids-in-aset aset)
-  (remove-duplicates (free-var-ids-in-aset/aux aset)))
-; Not optimal, but trivial to optimize
-(define (free-var-ids-in-aset/aux aset)
-  (cases assumption-set aset
-    (empty-aset () '())
-    (extend-aset (bvar btype saved-aset)
-      (append (free-var-ids-in-tscheme btype) (free-var-ids-in-aset/aux saved-aset)))))
-
 (define (generalize typ aset)
   (if (ref-type? typ)
     (a-type-scheme/simple typ)
@@ -341,27 +314,3 @@
       (prettyprint-exp exp)
       (prettyprint-type typ)
       (prettyprint-subst subst))))
-
-(define (multi-extend-aset b-vars b-types saved-aset)
-  (if (null? b-vars)
-    saved-aset
-    (extend-aset
-      (car b-vars)
-      (car b-types)
-      (multi-extend-aset (cdr b-vars) (cdr b-types) saved-aset))))
-
-(define (aset->list aset)
-  (cases assumption-set aset
-         (empty-aset () '())
-         (extend-aset (b-var b-type saved-aset)
-                       (cons (list b-var b-type) (aset->list saved-aset)))))
-
-(define (prettyprint-aset aset)
-  (format
-    "{~a}"
-    (string-join
-      (map
-        (lambda (aset-elem) (format "~a: ~a" (car aset-elem) (prettyprint-tscheme (cadr aset-elem))))
-        (aset->list aset))
-      "; ")))
-

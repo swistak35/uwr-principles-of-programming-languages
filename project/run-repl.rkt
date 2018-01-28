@@ -7,7 +7,7 @@
 (require (only-in "interp.rkt"
                   value-of-program))
 (require (only-in "inference.rkt"
-                  infer/pgm))
+                  infer-program))
 (require (only-in "prettyprint-type.rkt"
                   prettyprint-type))
 (require (only-in "prettyprint-expval.rkt"
@@ -20,7 +20,7 @@
 
 (define (handle-interpret str)
   (let* ((prg (scan&parse str))
-         (result-type (infer/pgm prg))
+         (result-type (infer-program prg))
          (result-value (value-of-program prg)))
     (printf
       "~a : ~a\n\n"

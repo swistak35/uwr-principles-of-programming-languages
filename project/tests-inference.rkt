@@ -9,7 +9,7 @@
 (provide inference-tests)
 
 (define (runner prg)
-  (prettyprint-type (infer/pgm (scan&parse prg))))
+  (prettyprint-type (infer-program (scan&parse prg))))
 
 (define (runner-d prg)
   (lambda () (runner prg)))
