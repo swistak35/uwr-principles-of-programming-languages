@@ -2,7 +2,8 @@
 
 (require (only-in racket/base
                   read-line displayln eof-object? printf
-                  exit))
+                  exit with-handlers exn-message))
+(require racket/exn)
 (require "lang.rkt")
 (require (only-in "interp.rkt"
                   value-of-program))
@@ -28,12 +29,13 @@
       (prettyprint-type result-type))))
 
 (define (repl-rec)
-  (display prompt)
-  (let ((command-read (read-line)))
-    (cond
-      ((eof-object? command-read) (handle-exit))
-      ((equal? command-read "exit") (handle-exit))
-      (else (handle-interpret command-read))))
+  (with-handlers ([(lambda (exn) #t) (lambda (e) (display (exn-message e)) (repl-rec))])
+    (display prompt)
+    (let ((command-read (read-line)))
+      (cond
+        ((eof-object? command-read) (handle-exit))
+        ((equal? command-read "exit") (handle-exit))
+        (else (handle-interpret command-read)))))
   (repl-rec))
 
 (define (repl)

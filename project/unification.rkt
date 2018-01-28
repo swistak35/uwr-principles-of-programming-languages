@@ -87,7 +87,7 @@
 
 (define (unify/var-sth equalities saved-subst id sth)
   (if (and (not (equal? (var-type id) sth)) (var-occurs-in-type? id sth))
-    (eopl:error 'infer "Unification failed - occurs free check of ~s in ~s" id (prettyprint-type sth))
+    (eopl:error 'infer "Unification failed - occurs free check of '~s in ~s" id (prettyprint-type sth))
     (let ((new-subst (merge-subst saved-subst (extend-subst id sth (empty-subst)))))
       (unify (subst-in-equalities new-subst equalities) new-subst))))
 
@@ -119,7 +119,10 @@
 (define (unify/simple equalities saved-subst left right)
   (if (equal? left right)
     (unify equalities saved-subst)
-    (eopl:error 'infer "Unification of ~s with ~s failed with substitution ~s" left right saved-subst)))
+    (eopl:error 'infer "Unification failed.\nUnification of: ~a\n          with: ~a\n    with subst: ~a\n"
+                (prettyprint-type left)
+                (prettyprint-type right)
+                (prettyprint-subst saved-subst))))
 
 (define (unify equalities subst)
   (if (null? equalities)
